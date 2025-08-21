@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "next build",
+    "vercel-build": "npx prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "db:push": "prisma db push",
@@ -15,19 +16,20 @@
   },
   "dependencies": {
     "@coinbase/onchainkit": "1.0.0-alpha.13",
+    "@farcaster/miniapp-sdk": "0.1.9",
     "@prisma/client": "^5.20.0",
-    "next": "15.1.0",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "viem": "^2.21.35",
-    "wagmi": "^2.12.17"
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "viem": "^2.27.2",
+    "wagmi": "^2.14.11"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
-    "@types/react": "^18.2.79",
-    "@types/react-dom": "^18.2.25",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.3",
+    "eslint-config-next": "15.0.3",
     "prisma": "^5.20.0",
     "typescript": "^5.4.5"
   }
