@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@coinbase/onchainkit": "1.0.0-alpha.13",
-    "@farcaster/miniapp-sdk": "0.1.9",
     "@prisma/client": "^5.20.0",
     "next": "^15.0.0",
     "react": "^19.0.0",

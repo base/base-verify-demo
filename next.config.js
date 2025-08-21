@@ -1,15 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   transpilePackages: [
-    '@farcaster/miniapp-sdk',
-    '@farcaster/miniapp-core',
-    '@farcaster/miniapp-wagmi-connector',
-    '@farcaster/quick-auth'
+    '@coinbase/onchainkit'
   ],
-  experimental: {
-    esmExternals: 'loose',
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      }
+    }
+    return config
   },
 }
 
