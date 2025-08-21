@@ -16,9 +16,10 @@ type VerifiedUser = {
 
 type Props = {
   users: VerifiedUser[]
+  error?: string
 }
 
-export default function Home({ users }: Props) {
+export default function Home({ users, error }: Props) {
   const { address, isConnected } = useAccount()
 
   return (
@@ -47,7 +48,19 @@ export default function Home({ users }: Props) {
           </div>
         )}
         
-        {users.length === 0 ? (
+        {error && (
+          <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#fff0f0', borderRadius: '8px', border: '1px solid #ff4444' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#ff4444' }}>Database Error</h3>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>
+              {error}
+            </p>
+            <small style={{ color: '#888' }}>
+              Please check your database configuration and environment variables.
+            </small>
+          </div>
+        )}
+        
+        {users.length === 0 && !error ? (
           <p>No verified users found.</p>
         ) : (
           <div>
@@ -77,6 +90,9 @@ export default function Home({ users }: Props) {
 
 export const getServerSideProps: GetServerSideProps = async () => {
   try {
+    // Check if database connection works
+    await prisma.$connect()
+    
     const users = await prisma.verifiedUser.findMany({
       orderBy: { createdAt: 'desc' }
     })
@@ -87,11 +103,17 @@ export const getServerSideProps: GetServerSideProps = async () => {
       }
     }
   } catch (error) {
-    console.error('Error fetching users:', error)
+    console.error('Database error:', error)
+    
+    // Return props with error information for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Database connection failed'
     return {
       props: {
-        users: []
+        users: [],
+        error: process.env.NODE_ENV === 'development' ? errorMessage : 'Database connection failed'
       }
     }
+  } finally {
+    await prisma.$disconnect()
   }
 }
