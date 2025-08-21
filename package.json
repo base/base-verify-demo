@@ -1,0 +1,33 @@
+{
+  "name": "verify-demo-mini-app",
+  "version": "1.0.0",
+  "description": "Simple Next.js app with Postgres for verified X users",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:generate": "prisma generate"
+  },
+  "dependencies": {
+    "@coinbase/onchainkit": "1.0.0-alpha.13",
+    "@prisma/client": "^5.20.0",
+    "next": "15.1.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "viem": "^2.21.35",
+    "wagmi": "^2.12.17"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.2.79",
+    "@types/react-dom": "^18.2.25",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.3",
+    "prisma": "^5.20.0",
+    "typescript": "^5.4.5"
+  }
+}
