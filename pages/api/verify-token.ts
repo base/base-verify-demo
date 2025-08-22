@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { config } from '../../lib/config';
+import prisma from '../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -41,6 +42,58 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Get the verification data from the response
     const verificationData = await verifyResponse.json();
+
+    // Store the verification data in the database
+    try {
+      // Extract user data from verification response
+      const addressMatch = message.match(/0x[a-fA-F0-9]{40}/);
+      const walletAddress = addressMatch ? addressMatch[0] : '';
+      await prisma.verifiedUser.upsert({
+        where: { xUserId: '' },
+        update: {
+          address: walletAddress,
+          xUsername: '',
+          xFollowers: 0,
+          updatedAt: new Date()
+        },
+        create: {
+          address: walletAddress,
+          xUserId: '',
+          xUsername: '',
+          xFollowers: 0
+        }
+      });
+
+    //   if (xData.id && xData.username) {
+    //     // Extract wallet address from the message (SIWE format)
+    //     const addressMatch = message.match(/0x[a-fA-F0-9]{40}/);
+    //     const walletAddress = addressMatch ? addressMatch[0] : '';
+        
+    //     if (walletAddress) {
+    //       // Create or update user in database
+    //       await prisma.verifiedUser.upsert({
+    //         where: { xUserId: xData.id },
+    //         update: {
+    //           address: walletAddress,
+    //           xUsername: xData.username,
+    //           xFollowers: parseInt(xData.followers) || 0,
+    //           updatedAt: new Date()
+    //         },
+    //         create: {
+    //           address: walletAddress,
+    //           xUserId: xData.id,
+    //           xUsername: xData.username,
+    //           xFollowers: parseInt(xData.followers) || 0
+    //         }
+    //       });
+          
+    //       console.log(`Successfully stored verification for user @${xData.username} (${xData.id})`);
+    //     }
+    //   }
+    } catch (dbError) {
+      console.error('Error storing verification in database:', dbError);
+      // Don't fail the request if database storage fails
+    }
 
     // Return 200 OK with the verification data
     return res.status(200).json({

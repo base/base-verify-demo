@@ -1,10 +1,11 @@
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import { useAccount, useSignMessage } from 'wagmi'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import prisma from '../lib/prisma'
 import { WalletComponent } from '../components/Wallet'
 import { generateSignature } from '../lib/signature-generator'
+import { verifySignatureCache } from '../lib/signatureCache'
 import { config } from '../lib/config'
 
 type VerifiedUser = {
@@ -22,47 +23,54 @@ type Props = {
   error?: string
 }
 
-export default function Home({ users, error }: Props) {
+export default function Home({ users: initialUsers, error }: Props) {
   const { address, isConnected } = useAccount()
   const { signMessage } = useSignMessage()
+  const [users, setUsers] = useState<VerifiedUser[]>(initialUsers)
   const [isVerifying, setIsVerifying] = useState(false)
   const [verificationResult, setVerificationResult] = useState<any>(null)
   const [verificationError, setVerificationError] = useState<string>('')
 
-  const redirectToVerify = (signature: { signature: string, message: string }) => {
-    // Create a form and submit to base verify mini app, following the pattern from external mini app
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = `${config.baseVerifyMiniAppUrl}/?redirect_uri=${encodeURIComponent(config.appUrl)}&providers=x`;
-    form.style.display = 'none';
+  // Clear cache when address changes
+  useEffect(() => {
+    if (address) {
+      // Check if cached signature is for a different address
+      const cachedSignature = verifySignatureCache.get();
+      if (cachedSignature && cachedSignature.address.toLowerCase() !== address.toLowerCase()) {
+        verifySignatureCache.clear();
+      }
+    }
+  }, [address])
 
-    // Add message
-    const messageInput = document.createElement('input');
-    messageInput.name = 'message';
-    messageInput.value = signature.message;
-    form.appendChild(messageInput);
+  // Update users state when props change
+  useEffect(() => {
+    setUsers(initialUsers)
+  }, [initialUsers])
 
-    // Add signature
-    const signatureInput = document.createElement('input');
-    signatureInput.name = 'signature';
-    signatureInput.value = signature.signature;
-    form.appendChild(signatureInput);
+  // Function to fetch updated users from API
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/users')
+      if (response.ok) {
+        const updatedUsers = await response.json()
+        setUsers(updatedUsers)
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    }
+  }
 
-    // Add redirect URI for callback
-    const redirectUriInput = document.createElement('input');
-    redirectUriInput.name = 'redirectUri';
-    redirectUriInput.value = `${window.location.origin}/`;
-    form.appendChild(redirectUriInput);
+  const redirectToVerify = () => {
+    // Build URL with query parameters for GET redirect
+    const params = new URLSearchParams({
+      redirect_uri: config.appUrl,
+      providers: 'x',
+      redirectUri: `${window.location.origin}/`,
+      state: `verify-${Date.now()}`
+    });
 
-    // Add state for tracking
-    const stateInput = document.createElement('input');
-    stateInput.name = 'state';
-    stateInput.value = `verify-${Date.now()}`;
-    form.appendChild(stateInput);
-
-    // Submit the form
-    document.body.appendChild(form);
-    form.submit();
+    // Redirect to base verify mini app with GET request
+    window.location.href = `${config.baseVerifyMiniAppUrl}?${params.toString()}`;
   }
 
   const handleVerify = async () => {
@@ -76,24 +84,37 @@ export default function Home({ users, error }: Props) {
     setVerificationResult(null)
 
     try {
-      // Generate SIWE signature for base_verify_token
-      const signature = await generateSignature({
-        action: 'base_verify_token',
-        provider: 'x',
-        traits: { 'x': 'true' },
-        signMessageFunction: async (message: string) => {
-          return new Promise<string>((resolve, reject) => {
-            signMessage(
-              { message },
-              {
-                onSuccess: (signature) => resolve(signature),
-                onError: (error) => reject(error)
-              }
-            )
-          })
-        },
-        address: address
-      })
+      let signature;
+      
+      // Check for cached signature first
+      const cachedSignature = verifySignatureCache.get();
+      if (cachedSignature && verifySignatureCache.isValidForAddress(address, 'base_verify_token')) {
+        console.log('Using cached signature');
+        signature = cachedSignature;
+      } else {
+        console.log('Generating new signature');
+        // Generate SIWE signature for base_verify_token
+        signature = await generateSignature({
+          action: 'base_verify_token',
+          provider: 'x',
+          traits: { 'x': 'true' },
+          signMessageFunction: async (message: string) => {
+            return new Promise<string>((resolve, reject) => {
+              signMessage(
+                { message },
+                {
+                  onSuccess: (signature) => resolve(signature),
+                  onError: (error) => reject(error)
+                }
+              )
+            })
+          },
+          address: address
+        });
+        
+        // Cache the newly generated signature
+        verifySignatureCache.set(signature);
+      }
 
       // Call our API endpoint to verify with base_verify_token
       const response = await fetch('/api/verify-token', {
@@ -111,19 +132,26 @@ export default function Home({ users, error }: Props) {
         const data = await response.json()
         setVerificationResult(data.verification)
         console.log('Verification successful:', data)
+        
+        // Fetch updated users list from API
+        await fetchUsers()
       } else {
         const errorData = await response.json()
         
         // If verification not found (404), redirect to base verify mini app
         if (response.status === 404) {
           console.log('Verification not found, redirecting to base verify mini app...')
-          redirectToVerify(signature)
+          redirectToVerify()
         } else {
+          // Clear cache on verification failure (might be invalid signature)
+          verifySignatureCache.clear();
           setVerificationError(errorData.error || 'Verification failed')
         }
       }
     } catch (err) {
       console.error('Verification error:', err)
+      // Clear cache on error (might be signature issue)
+      verifySignatureCache.clear();
       setVerificationError(err instanceof Error ? err.message : 'Verification failed')
     } finally {
       setIsVerifying(false)
