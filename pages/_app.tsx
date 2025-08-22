@@ -6,8 +6,18 @@ const Providers = dynamic(() => import('../components/Providers').then(m => m.Pr
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <Providers>
-      <Component {...pageProps} />
-    </Providers>
+    <>
+      <style jsx global>{`
+        html,
+        body {
+          background-color: white;
+          margin: 0;
+          padding: 0;
+        }
+      `}</style>
+      <Providers>
+        <Component {...pageProps} />
+      </Providers>
+    </>
   )
 }
