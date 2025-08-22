@@ -1,8 +1,11 @@
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
-import { useAccount } from 'wagmi'
+import { useAccount, useSignMessage } from 'wagmi'
+import { useState } from 'react'
 import prisma from '../lib/prisma'
 import { WalletComponent } from '../components/Wallet'
+import { generateSignature } from '../lib/signature-generator'
+import { config } from '../lib/config'
 
 type VerifiedUser = {
   id: string
@@ -21,6 +24,111 @@ type Props = {
 
 export default function Home({ users, error }: Props) {
   const { address, isConnected } = useAccount()
+  const { signMessage } = useSignMessage()
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [verificationResult, setVerificationResult] = useState<any>(null)
+  const [verificationError, setVerificationError] = useState<string>('')
+
+  const redirectToVerify = (signature: { signature: string, message: string }) => {
+    // Create a form and submit to base verify mini app, following the pattern from external mini app
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `${config.baseVerifyMiniAppUrl}/?redirect_uri=${encodeURIComponent(config.appUrl)}&providers=x`;
+    form.style.display = 'none';
+
+    // Add message
+    const messageInput = document.createElement('input');
+    messageInput.name = 'message';
+    messageInput.value = signature.message;
+    form.appendChild(messageInput);
+
+    // Add signature
+    const signatureInput = document.createElement('input');
+    signatureInput.name = 'signature';
+    signatureInput.value = signature.signature;
+    form.appendChild(signatureInput);
+
+    // Add redirect URI for callback
+    const redirectUriInput = document.createElement('input');
+    redirectUriInput.name = 'redirectUri';
+    redirectUriInput.value = `${window.location.origin}/`;
+    form.appendChild(redirectUriInput);
+
+    // Add state for tracking
+    const stateInput = document.createElement('input');
+    stateInput.name = 'state';
+    stateInput.value = `verify-${Date.now()}`;
+    form.appendChild(stateInput);
+
+    // Submit the form
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  const handleVerify = async () => {
+    if (!address || !signMessage) {
+      setVerificationError('Please connect your wallet first')
+      return
+    }
+
+    setIsVerifying(true)
+    setVerificationError('')
+    setVerificationResult(null)
+
+    try {
+      // Generate SIWE signature for base_verify_token
+      const signature = await generateSignature({
+        action: 'base_verify_token',
+        provider: 'x',
+        traits: { 'x': 'true' },
+        signMessageFunction: async (message: string) => {
+          return new Promise<string>((resolve, reject) => {
+            signMessage(
+              { message },
+              {
+                onSuccess: (signature) => resolve(signature),
+                onError: (error) => reject(error)
+              }
+            )
+          })
+        },
+        address: address
+      })
+
+      // Call our API endpoint to verify with base_verify_token
+      const response = await fetch('/api/verify-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          signature: signature.signature,
+          message: signature.message
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setVerificationResult(data.verification)
+        console.log('Verification successful:', data)
+      } else {
+        const errorData = await response.json()
+        
+        // If verification not found (404), redirect to base verify mini app
+        if (response.status === 404) {
+          console.log('Verification not found, redirecting to base verify mini app...')
+          redirectToVerify(signature)
+        } else {
+          setVerificationError(errorData.error || 'Verification failed')
+        }
+      }
+    } catch (err) {
+      console.error('Verification error:', err)
+      setVerificationError(err instanceof Error ? err.message : 'Verification failed')
+    } finally {
+      setIsVerifying(false)
+    }
+  }
 
   return (
     <>
@@ -42,8 +150,46 @@ export default function Home({ users, error }: Props) {
         {isConnected && address && (
           <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#f0f8ff', borderRadius: '8px', border: '1px solid #0070f3' }}>
             <h3 style={{ margin: '0 0 0.5rem 0', color: '#0070f3' }}>Connected Wallet</h3>
-            <p style={{ margin: 0, fontFamily: 'monospace', fontSize: '0.9rem' }}>
+            <p style={{ margin: '0 0 1rem 0', fontFamily: 'monospace', fontSize: '0.9rem' }}>
               {address}
+            </p>
+            <button
+              onClick={handleVerify}
+              disabled={isVerifying}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: isVerifying ? '#ccc' : '#0070f3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: isVerifying ? 'not-allowed' : 'pointer',
+                fontSize: '0.9rem'
+              }}
+            >
+              {isVerifying ? 'Verifying...' : 'Verify'}
+            </button>
+          </div>
+        )}
+
+        {verificationResult && (
+          <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#f0fff0', borderRadius: '8px', border: '1px solid #00aa00' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#00aa00' }}>Verification Success</h3>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>
+              Token: {verificationResult.token?.substring(0, 20)}...
+            </p>
+            {verificationResult.traits && (
+              <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#666' }}>
+                <strong>Traits:</strong> {JSON.stringify(verificationResult.traits, null, 2)}
+              </div>
+            )}
+          </div>
+        )}
+
+        {verificationError && (
+          <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#fff0f0', borderRadius: '8px', border: '1px solid #ff4444' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#ff4444' }}>Verification Error</h3>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>
+              {verificationError}
             </p>
           </div>
         )}

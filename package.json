@@ -4,7 +4,7 @@
   "description": "Simple Next.js app with Postgres for verified X users",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3003",
     "build": "next build",
     "vercel-build": "npx prisma generate && next build",
     "start": "next start",
@@ -17,9 +17,11 @@
   "dependencies": {
     "@coinbase/onchainkit": "1.0.0-alpha.13",
     "@prisma/client": "^5.20.0",
+    "ethers": "6.12.1",
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "siwe": "^3.0.0",
     "viem": "^2.27.2",
     "wagmi": "^2.14.11"
   },
