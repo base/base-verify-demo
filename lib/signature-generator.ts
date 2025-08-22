@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { SiweMessage, generateNonce } from 'siwe';
+import { config } from './config';
 
 export interface SIWEOptions {
   address: string;
@@ -16,9 +17,9 @@ export interface SIWEOptions {
 // Build SIWE message using the official SIWE library
 function buildSIWEMessage(options: SIWEOptions): { message: string; nonce: string } {
   const {
-    domain = 'localhost',
+    domain = config.appUrl,
     address,
-    uri = 'http://localhost:3000/verify/x/callback',
+    uri = config.appUrl,
     chainId = 8453, // Base chain
     statement = 'Sign in with X verification',
     action,
