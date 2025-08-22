@@ -14,10 +14,29 @@ export interface SIWEOptions {
   statement?: string;
 }
 
+// Extract domain from app URL for SIWE
+function extractDomainFromAppUrl(appUrl: string): string {
+  try {
+    // If it's a cbwallet:// URL, extract the actual domain from the embedded URL
+    if (appUrl.includes('cbwallet://miniapp?url=')) {
+      const urlMatch = appUrl.match(/url=([^&]+)/);
+      if (urlMatch) {
+        const embeddedUrl = decodeURIComponent(urlMatch[1]);
+        return new URL(embeddedUrl).hostname;
+      }
+    }
+    // For regular URLs, extract hostname
+    return new URL(appUrl).hostname;
+  } catch {
+    // Fallback to a default domain if URL parsing fails
+    return 'verified-x-users.vercel.app';
+  }
+}
+
 // Build SIWE message using the official SIWE library
 function buildSIWEMessage(options: SIWEOptions): { message: string; nonce: string } {
   const {
-    domain = config.appUrl,
+    domain = extractDomainFromAppUrl(config.appUrl),
     address,
     uri = config.appUrl,
     chainId = 8453, // Base chain
