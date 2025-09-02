@@ -8,6 +8,7 @@ import { WalletComponent } from '../components/Wallet'
 import { generateSignature } from '../lib/signature-generator'
 import { verifySignatureCache } from '../lib/signatureCache'
 import { config } from '../lib/config'
+import { useMiniKit } from "@coinbase/onchainkit/minikit";
 
 type VerifiedUser = {
   id: string
@@ -41,6 +42,13 @@ export default function Home({ users: initialUsers, error }: Props) {
   const [verificationResult, setVerificationResult] = useState<any>(null)
   const [verificationError, setVerificationError] = useState<string>('')
   const [isInMiniApp, setIsInMiniApp] = useState(false)
+  const { setFrameReady, isFrameReady } = useMiniKit();
+
+  useEffect(() => {
+    if (!isFrameReady) {
+      setFrameReady();
+    }
+  }, [setFrameReady, isFrameReady]);
 
   // Clear cache when address changes
   useEffect(() => {
