@@ -16,7 +16,7 @@ const config = {
   },
   frame: {
     version: '1',
-    name: 'Demo - BVMA',
+    name: 'Demo BVMA',
     subtitle: 'Demo of Base Verify Mini App',
     description: 'A demo of using the Base Verify Mini App to obtain a verification.',
     iconUrl: `${ROOT_URL}/icon.svg`,
