@@ -9,6 +9,11 @@ const config = {
     "payload": "eyJkb21haW4iOiJ2ZXJpZnktZGVtby1taW5pLWFwcC52ZXJjZWwuYXBwIn0",
     "signature": "MHhhNWY3NmEwNDE4ODhmMmE2ZGE3MDYxZmRhZTlmMWE5OGM0OTJjNDFiMGZlNzYxY2YxNTU3OTI3MWM5Y2E5YTQwNDYzZGFjZTljOGJkNzY5MWUwN2QwOWFkYjExZjAxMDE5MWRhZjQ0MmJiMDM1Yzg1MjQ1MzlhNTEzOTM2NjRhMzFj"
   },
+  baseBuilder: {
+    allowedAddresses: [
+      "0xd76798784d9A4635e30A10C48CD267d7d33E182E",
+    ],
+  },
   frame: {
     version: '1',
     name: 'Demo - BVMA',
