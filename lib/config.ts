@@ -4,7 +4,7 @@ export const config = {
   baseVerifyUrl: process.env.NEXT_PUBLIC_BASE_VERIFY_URL || 'https://your-base-verify.ngrok-free.app',
 
   // base verify mini app url
-  baseVerifyMiniAppUrl: process.env.NEXT_PUBLIC_BASE_VERIFY_MINI_APP_URL || 'cbwallet://miniapp?url=https://miniapp.verify.base.dev',
+  baseVerifyMiniAppUrl: process.env.NEXT_PUBLIC_BASE_VERIFY_MINI_APP_URL || 'https://miniapp.verify.base.dev',
   
   // Secret key for authenticating with Base Verify backend (server-side only)
   baseVerifySecretKey: process.env.BASE_VERIFY_SECRET_KEY,
