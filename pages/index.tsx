@@ -86,11 +86,12 @@ export default function Home({ users: initialUsers, error }: Props) {
   }
 
   const redirectToVerifyMiniApp = async () => {
+    const redirectUri = `${isInMiniApp ? 'cbwallet://miniapp?url=' : ''}${config.appUrl}`;
+
     // Build URL with query parameters for GET redirect
     const params = new URLSearchParams({
-      redirect_uri: config.appUrl,
+      redirect_uri: redirectUri,
       providers: 'x',
-      redirectUri: `${window.location.origin}/`,
       state: `verify-${Date.now()}`
     });
 
