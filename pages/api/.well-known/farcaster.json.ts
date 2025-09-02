@@ -1,4 +1,5 @@
 import { withValidManifest } from '@coinbase/onchainkit/minikit';
+import { NextApiRequest, NextApiResponse } from 'next';
 
 const ROOT_URL = "https://verify-demo-mini-app.vercel.app";
 
@@ -25,6 +26,11 @@ const config = {
   },
 } as const;
 
-export async function GET() {
-  return Response.json(withValidManifest(config));
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'GET') {
+    res.status(200).json(withValidManifest(config));
+  } else {
+    res.setHeader('Allow', ['GET']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+  }
 }
