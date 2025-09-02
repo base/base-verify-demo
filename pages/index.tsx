@@ -2,6 +2,7 @@ import { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import { useAccount, useSignMessage } from 'wagmi'
 import { useState, useEffect } from 'react'
+import { sdk } from '@farcaster/miniapp-sdk'
 import prisma from '../lib/prisma'
 import { WalletComponent } from '../components/Wallet'
 import { generateSignature } from '../lib/signature-generator'
@@ -23,6 +24,15 @@ type Props = {
   error?: string
 }
 
+// Function to handle URL redirects in mini app and regular browser contexts
+async function openUrl(url: string, isInMiniApp: boolean) {
+  if (isInMiniApp) {
+    await sdk.actions.openUrl(url);
+  } else {
+    window.location.href = url;
+  }
+}
+
 export default function Home({ users: initialUsers, error }: Props) {
   const { address, isConnected } = useAccount()
   const { signMessage } = useSignMessage()
@@ -30,6 +40,7 @@ export default function Home({ users: initialUsers, error }: Props) {
   const [isVerifying, setIsVerifying] = useState(false)
   const [verificationResult, setVerificationResult] = useState<any>(null)
   const [verificationError, setVerificationError] = useState<string>('')
+  const [isInMiniApp, setIsInMiniApp] = useState(false)
 
   // Clear cache when address changes
   useEffect(() => {
@@ -47,6 +58,20 @@ export default function Home({ users: initialUsers, error }: Props) {
     setUsers(initialUsers)
   }, [initialUsers])
 
+  // Initialize SDK and detect mini app context
+  useEffect(() => {
+    sdk
+      .isInMiniApp()
+      .then((isInMiniAppResult) => {
+        setIsInMiniApp(isInMiniAppResult);
+        console.log('Mini app context detected:', isInMiniAppResult);
+      })
+      .catch((error) => {
+        console.log('Not running in mini app context:', error);
+        setIsInMiniApp(false);
+      });
+  }, [])
+
   // Function to fetch updated users from API
   const fetchUsers = async () => {
     try {
@@ -60,7 +85,7 @@ export default function Home({ users: initialUsers, error }: Props) {
     }
   }
 
-  const redirectToVerify = () => {
+  const redirectToVerify = async () => {
     // Build URL with query parameters for GET redirect
     const params = new URLSearchParams({
       redirect_uri: config.appUrl,
@@ -69,8 +94,9 @@ export default function Home({ users: initialUsers, error }: Props) {
       state: `verify-${Date.now()}`
     });
 
-    // Redirect to base verify mini app with GET request
-    window.location.href = `${config.baseVerifyMiniAppUrl}?${params.toString()}`;
+    // Redirect to base verify mini app with GET request using the appropriate method
+    const url = `${config.baseVerifyMiniAppUrl}?${params.toString()}`;
+    await openUrl(url, isInMiniApp);
   }
 
   const handleVerify = async () => {
@@ -93,6 +119,7 @@ export default function Home({ users: initialUsers, error }: Props) {
         signature = cachedSignature;
       } else {
         console.log('Generating new signature');
+        console.log('sdk.isInMiniApp()', sdk.isInMiniApp())
         // Generate SIWE signature for base_verify_token
         signature = await generateSignature({
           action: 'base_verify_token',
@@ -141,7 +168,7 @@ export default function Home({ users: initialUsers, error }: Props) {
         // If verification not found (404), redirect to base verify mini app
         if (response.status === 404) {
           console.log('Verification not found, redirecting to base verify mini app...')
-          redirectToVerify()
+          await redirectToVerify()
         } else {
           // Clear cache on verification failure (might be invalid signature)
           verifySignatureCache.clear();
