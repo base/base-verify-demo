@@ -90,7 +90,6 @@ export default function Home({ users: initialUsers, error }: Props) {
     const params = new URLSearchParams({
       redirect_uri: config.appUrl,
       providers: 'x',
-      redirectUri: `${window.location.origin}/`,
       state: `verify-${Date.now()}`
     });
 
