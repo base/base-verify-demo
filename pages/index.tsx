@@ -26,9 +26,9 @@ type Props = {
 }
 
 // Function to handle URL redirects in mini app and regular browser contexts
-async function openMiniApp(url: string, isInMiniApp: boolean) {
+async function openUrl(url: string, isInMiniApp: boolean) {
   if (isInMiniApp) {
-    await sdk.actions.openMiniApp({ url });
+    await sdk.actions.openUrl({ url });
   } else {
     window.location.href = url;
   }
@@ -94,18 +94,16 @@ export default function Home({ users: initialUsers, error }: Props) {
   }
 
   const redirectToVerifyMiniApp = async () => {
-    const redirectUri = `${isInMiniApp ? 'cbwallet://miniapp?url=' : ''}${config.appUrl}`;
-
     // Build URL with query parameters for GET redirect
     const params = new URLSearchParams({
-      redirect_uri: redirectUri,
+      redirect_uri: config.appUrl,
       providers: 'x',
       state: `verify-${Date.now()}`
     });
 
     // Redirect to base verify mini app with GET request using the appropriate method
     const url = `${config.baseVerifyMiniAppUrl}?${params.toString()}`;
-    await openMiniApp(url, isInMiniApp);
+    await openUrl(url, isInMiniApp);
   }
 
   const handleVerify = async () => {
