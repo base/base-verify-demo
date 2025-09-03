@@ -12,6 +12,7 @@ export interface SIWEOptions {
   uri?: string;
   chainId?: number;
   statement?: string;
+  disclosures?: boolean;
 }
 
 // Extract domain from app URL for SIWE
@@ -44,7 +45,8 @@ function buildSIWEMessage(options: SIWEOptions): { message: string; nonce: strin
     action,
     provider,
     traits = {},
-    verificationID
+    verificationID,
+    disclosures
   } = options;
 
   const nonce = generateNonce();
@@ -77,6 +79,10 @@ function buildSIWEMessage(options: SIWEOptions): { message: string; nonce: strin
     resources.push(`urn:verify:verificationid:${verificationID}`);
   }
 
+  if (disclosures) {
+    resources.push(`urn:verify:disclosures:true`);
+  }
+
   // Create SIWE message using the official library
   const siweMessage = new SiweMessage({
     domain,
@@ -106,6 +112,7 @@ export interface GenerateSignatureOptions {
   statement?: string;
   signMessageFunction?: (message: string) => Promise<string>;
   address?: string;
+  disclosures?: boolean;
 }
 
 export interface GeneratedSignature {
@@ -115,10 +122,6 @@ export interface GeneratedSignature {
   nonce: string;
 }
 
-/**
- * Generate a SIWE signature for testing purposes
- * This matches the signature generation in the provided scripts
- */
 export async function generateSignature(options: GenerateSignatureOptions): Promise<GeneratedSignature> {
   const {
     privateKey,
@@ -132,6 +135,7 @@ export async function generateSignature(options: GenerateSignatureOptions): Prom
     statement,
     signMessageFunction,
     address: providedAddress,
+    disclosures
   } = options;
 
   try {
@@ -161,6 +165,7 @@ export async function generateSignature(options: GenerateSignatureOptions): Prom
       uri,
       chainId,
       statement,
+      disclosures
     };
 
     const { message, nonce } = buildSIWEMessage(siweOptions);
