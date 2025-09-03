@@ -214,7 +214,7 @@ export default function Home({ users: initialUsers, error }: Props) {
           <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#f0f8ff', borderRadius: '8px', border: '1px solid #0070f3' }}>
             <h3 style={{ margin: '0 0 0.5rem 0', color: '#0070f3' }}>Connected Wallet</h3>
             <p style={{ margin: '0 0 1rem 0', fontFamily: 'monospace', fontSize: '0.9rem' }}>
-              {address}
+              {address.slice(0, 6)}...{address.slice(-4)}
             </p>
             <button
               onClick={handleVerify}
