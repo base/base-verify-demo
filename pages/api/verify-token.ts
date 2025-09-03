@@ -49,47 +49,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const addressMatch = message.match(/0x[a-fA-F0-9]{40}/);
       const walletAddress = addressMatch ? addressMatch[0] : '';
       await prisma.verifiedUser.upsert({
-        where: { xUserId: '' },
+        where: { xUserId: verificationData.disclosures.xUserId },
         update: {
           address: walletAddress,
-          xUsername: '',
-          xFollowers: 0,
+          xUsername: verificationData.disclosures.xUsername,
+          xFollowers: verificationData.disclosures.xFollowers,
           updatedAt: new Date()
         },
         create: {
           address: walletAddress,
-          xUserId: '',
-          xUsername: '',
-          xFollowers: 0
+          xUserId: verificationData.disclosures.xUserId,
+          xUsername: verificationData.disclosures.xUsername,
+          xFollowers: verificationData.disclosures.xFollowers
         }
       });
 
-    //   if (xData.id && xData.username) {
-    //     // Extract wallet address from the message (SIWE format)
-    //     const addressMatch = message.match(/0x[a-fA-F0-9]{40}/);
-    //     const walletAddress = addressMatch ? addressMatch[0] : '';
-        
-    //     if (walletAddress) {
-    //       // Create or update user in database
-    //       await prisma.verifiedUser.upsert({
-    //         where: { xUserId: xData.id },
-    //         update: {
-    //           address: walletAddress,
-    //           xUsername: xData.username,
-    //           xFollowers: parseInt(xData.followers) || 0,
-    //           updatedAt: new Date()
-    //         },
-    //         create: {
-    //           address: walletAddress,
-    //           xUserId: xData.id,
-    //           xUsername: xData.username,
-    //           xFollowers: parseInt(xData.followers) || 0
-    //         }
-    //       });
-          
-    //       console.log(`Successfully stored verification for user @${xData.username} (${xData.id})`);
-    //     }
-    //   }
     } catch (dbError) {
       console.error('Error storing verification in database:', dbError);
       // Don't fail the request if database storage fails

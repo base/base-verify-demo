@@ -143,7 +143,8 @@ export default function Home({ users: initialUsers, error }: Props) {
               )
             })
           },
-          address: address
+          address: address,
+          disclosures: true
         });
         
         // Cache the newly generated signature
