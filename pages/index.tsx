@@ -184,7 +184,7 @@ export default function Home({ users: initialUsers, error }: Props) {
 
       if (response.ok) {
         const data = await response.json()
-        setVerificationResult(data.verification)
+        setVerificationResult(data)
         console.log('Verification successful:', data)
         
         // Fetch updated users list from API
@@ -256,14 +256,20 @@ export default function Home({ users: initialUsers, error }: Props) {
         {verificationResult && (
           <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#f0fff0', borderRadius: '8px', border: '1px solid #00aa00' }}>
             <h3 style={{ margin: '0 0 0.5rem 0', color: '#00aa00' }}>Verification Success</h3>
-            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>
-              Token: {verificationResult.token?.substring(0, 20)}...
-            </p>
-            {verificationResult.traits && (
-              <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#666' }}>
-                <strong>Traits:</strong> {JSON.stringify(verificationResult.traits, null, 2)}
-              </div>
-            )}
+            <div style={{ marginTop: '0.5rem' }}>
+              <strong>Complete JSON Response:</strong>
+              <pre style={{ 
+                backgroundColor: '#f8f8f8', 
+                padding: '1rem', 
+                borderRadius: '4px', 
+                fontSize: '0.8rem', 
+                overflow: 'auto',
+                border: '1px solid #ddd',
+                marginTop: '0.5rem'
+              }}>
+                {JSON.stringify(verificationResult, null, 2)}
+              </pre>
+            </div>
           </div>
         )}
 
