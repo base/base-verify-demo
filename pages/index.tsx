@@ -1,5 +1,6 @@
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import { useAccount, useSignMessage } from 'wagmi'
 import { useState, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk'
@@ -35,6 +36,7 @@ async function openUrl(url: string, isInMiniApp: boolean) {
 }
 
 export default function Home({ users: initialUsers, error }: Props) {
+  const router = useRouter()
   const { address, isConnected } = useAccount()
   const { signMessage } = useSignMessage()
   const [users, setUsers] = useState<VerifiedUser[]>(initialUsers)
@@ -80,6 +82,23 @@ export default function Home({ users: initialUsers, error }: Props) {
       });
   }, [])
 
+  // Auto-verify when returning from verification with success=true
+  useEffect(() => {
+    const { success } = router.query;
+    
+    if (success === 'true' && address && isConnected && !isVerifying && !verificationResult) {
+      console.log('Auto-verifying after successful redirect...');
+      handleVerify();
+      
+      // Clean up the URL to remove the success parameter
+      const { success: _, ...cleanQuery } = router.query;
+      router.replace({
+        pathname: router.pathname,
+        query: cleanQuery
+      }, undefined, { shallow: true });
+    }
+  }, [router.query, address, isConnected, isVerifying, verificationResult])
+
   // Function to fetch updated users from API
   const fetchUsers = async () => {
     try {
@@ -96,7 +115,7 @@ export default function Home({ users: initialUsers, error }: Props) {
   const redirectToVerifyMiniApp = async () => {
     // Build URL with query parameters for GET redirect
     const params = new URLSearchParams({
-      redirect_uri: config.appUrl,
+      redirect_uri: `${config.appUrl}?success=true`,
       providers: 'x',
       state: `verify-${Date.now()}`
     });
