@@ -41,6 +41,7 @@ export default function Home({ users: initialUsers, error }: Props) {
   const [verificationResult, setVerificationResult] = useState<any>(null)
   const [verificationError, setVerificationError] = useState<string>('')
   const [isInMiniApp, setIsInMiniApp] = useState(false)
+  const [isAutoVerification, setIsAutoVerification] = useState(false)
   const { setFrameReady, isFrameReady } = useMiniKit();
 
   useEffect(() => {
@@ -85,7 +86,8 @@ export default function Home({ users: initialUsers, error }: Props) {
     
     if (success === 'true' && address && isConnected && !isVerifying && !verificationResult) {
       console.log('Auto-verifying after successful redirect...');
-      handleVerify();
+      setIsAutoVerification(true);
+      handleVerify(true);
       
       // Clean up the URL to remove the success parameter
       const { success: _, ...cleanQuery } = router.query;
@@ -122,7 +124,7 @@ export default function Home({ users: initialUsers, error }: Props) {
     await openUrl(url, isInMiniApp);
   }
 
-  const handleVerify = async () => {
+  const handleVerify = async (isAutoVerifyFromSuccess = false) => {
     if (!address || !signMessage) {
       setVerificationError('Please connect your wallet to claim')
       return
@@ -183,19 +185,31 @@ export default function Home({ users: initialUsers, error }: Props) {
         setVerificationResult(data)
         console.log('Verification successful:', data)
         
+        // Reset auto-verification flag on success
+        setIsAutoVerification(false)
+        
         // Fetch updated users list from API
         await fetchUsers()
       } else {
         const errorData = await response.json()
         
-        // If verification not found (404), redirect to base verify mini app
+        // If verification not found (404), handle based on context
         if (response.status === 404) {
-          console.log('Verification not found, redirecting to base verify mini app...')
-          await redirectToVerifyMiniApp()
+          if (isAutoVerifyFromSuccess) {
+            // Show error message for auto-verification from success URL
+            setVerificationError('Sorry, your X account isn\'t verified. You are not eligible for this airdrop.')
+            setIsAutoVerification(false); // Reset the flag
+          } else {
+            // Normal 404 handling - redirect to base verify mini app
+            console.log('Verification not found, redirecting to base verify mini app...')
+            setIsAutoVerification(false) // Reset flag
+            await redirectToVerifyMiniApp()
+          }
         } else {
           // Clear cache on verification failure (might be invalid signature)
           verifySignatureCache.clear();
           setVerificationError(errorData.error || 'Verification failed')
+          setIsAutoVerification(false) // Reset flag
         }
       }
     } catch (err) {
@@ -203,6 +217,7 @@ export default function Home({ users: initialUsers, error }: Props) {
       // Clear cache on error (might be signature issue)
       verifySignatureCache.clear();
       setVerificationError(err instanceof Error ? err.message : 'Verification failed')
+      setIsAutoVerification(false) // Reset flag on error
     } finally {
       setIsVerifying(false)
     }
@@ -365,7 +380,10 @@ export default function Home({ users: initialUsers, error }: Props) {
               </div>
               
               <button
-                onClick={handleVerify}
+                onClick={() => {
+                  setIsAutoVerification(false);
+                  handleVerify(false);
+                }}
                 disabled={isVerifying}
                 style={{
                   width: '100%',
