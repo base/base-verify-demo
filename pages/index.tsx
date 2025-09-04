@@ -721,7 +721,7 @@ export default function Home({ users: initialUsers, error }: Props) {
                       color: '#374151',
                       marginBottom: '0.25rem'
                     }}>
-                      {user.id.slice(0, 8)}...{user.id.slice(-6)}
+                      {user.address.slice(0, 8)}...{user.address.slice(-6)}
                     </div>
                     <div style={{
                       fontSize: '0.8rem',
