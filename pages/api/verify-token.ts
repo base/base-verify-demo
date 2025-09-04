@@ -49,18 +49,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const addressMatch = message.match(/0x[a-fA-F0-9]{40}/);
       const walletAddress = addressMatch ? addressMatch[0] : '';
       await prisma.verifiedUser.upsert({
-        where: { xUserId: verificationData.disclosures.xUserId },
+        where: { id: walletAddress },
         update: {
-          address: walletAddress,
-          xUsername: verificationData.disclosures.xUsername,
-          xFollowers: verificationData.disclosures.xFollowers,
           updatedAt: new Date()
         },
         create: {
-          address: walletAddress,
-          xUserId: verificationData.disclosures.xUserId,
-          xUsername: verificationData.disclosures.xUsername,
-          xFollowers: verificationData.disclosures.xFollowers
+          id: walletAddress,
+          updatedAt: new Date()
         }
       });
 

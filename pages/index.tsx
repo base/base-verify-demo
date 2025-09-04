@@ -14,9 +14,6 @@ import { useMiniKit } from "@coinbase/onchainkit/minikit";
 type VerifiedUser = {
   id: string
   address: string
-  xUserId: string
-  xUsername: string
-  xFollowers: number
   createdAt: string
   updatedAt: string
 }
@@ -308,10 +305,7 @@ export default function Home({ users: initialUsers, error }: Props) {
                   borderRadius: '8px'
                 }}
               >
-                <h3>@{user.xUsername}</h3>
                 <p>Wallet: {user.address.slice(0, 6)}...{user.address.slice(-4)}</p>
-                <p>X User ID: {user.xUserId}</p>
-                <p>Followers: {user.xFollowers.toLocaleString()}</p>
                 <small>Added: {new Date(user.createdAt).toLocaleDateString()}</small>
               </div>
             ))}

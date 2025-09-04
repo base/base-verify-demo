@@ -13,10 +13,6 @@ datasource db {
 
 model VerifiedUser {
   id          String @id @default(cuid())
-  address     String
-  xUserId     String @unique @map("x_user_id")
-  xUsername   String
-  xFollowers  Int    @map("x_followers")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
