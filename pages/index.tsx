@@ -265,7 +265,57 @@ export default function Home({ users: initialUsers, error }: Props) {
               </div>
               <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600', color: '#1a1a1a' }}>Airdrop Portal</h1>
             </div>
-            <WalletComponent />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {verificationResult && (
+                <div style={{
+                  background: 'rgba(34, 197, 94, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '12px',
+                  padding: '0.5rem 1rem',
+                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  boxShadow: '0 4px 16px rgba(34, 197, 94, 0.1)'
+                }}>
+                  <span style={{ fontSize: '1rem' }}>✅</span>
+                  <span style={{
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    color: '#16a34a'
+                  }}>
+                    Airdrop Claimed!
+                  </span>
+                </div>
+              )}
+              {verificationError && (
+                <div style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '12px',
+                  padding: '0.5rem 1rem',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  boxShadow: '0 4px 16px rgba(239, 68, 68, 0.1)',
+                  maxWidth: '300px'
+                }}>
+                  <span style={{ fontSize: '1rem' }}>❌</span>
+                  <span style={{
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    color: '#dc2626',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {verificationError}
+                  </span>
+                </div>
+              )}
+              <WalletComponent />
+            </div>
           </div>
         </div>
 
@@ -298,57 +348,6 @@ export default function Home({ users: initialUsers, error }: Props) {
               To prevent spam, we've limited this to X verified users only.
             </p>
 
-            {verificationError && (
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.1)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: '20px',
-                padding: '2rem',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                marginBottom: '2rem',
-                boxShadow: '0 8px 32px rgba(239, 68, 68, 0.1)',
-                maxWidth: '600px',
-                marginLeft: 'auto',
-                marginRight: 'auto'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                  <div style={{
-                    width: '50px',
-                    height: '50px',
-                    background: 'linear-gradient(45deg, #ef4444, #dc2626)',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.5rem'
-                  }}>
-                    ❌
-                  </div>
-                  <h3 style={{
-                    margin: '0',
-                    fontSize: '1.5rem',
-                    fontWeight: '600',
-                    color: '#ffffff'
-                  }}>
-                    Claim Error
-                  </h3>
-                </div>
-                <div style={{
-                  background: 'rgba(255, 255, 255, 0.95)',
-                  borderRadius: '12px',
-                  padding: '1.5rem'
-                }}>
-                  <p style={{
-                    margin: 0,
-                    fontSize: '1rem',
-                    color: '#374151',
-                    lineHeight: '1.5'
-                  }}>
-                    {verificationError}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         
         {/* Claim Section */}
@@ -535,61 +534,6 @@ export default function Home({ users: initialUsers, error }: Props) {
           </div>
         </div>
 
-        {verificationResult && (
-          <div style={{
-            background: 'rgba(34, 197, 94, 0.1)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '20px',
-            padding: '2rem',
-            border: '1px solid rgba(34, 197, 94, 0.3)',
-            marginBottom: '3rem',
-            boxShadow: '0 8px 32px rgba(34, 197, 94, 0.1)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{
-                width: '50px',
-                height: '50px',
-                background: 'linear-gradient(45deg, #22c55e, #16a34a)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.5rem'
-              }}>
-                ✅
-              </div>
-              <h3 style={{
-                margin: '0',
-                fontSize: '1.5rem',
-                fontWeight: '600',
-                color: '#ffffff'
-              }}>
-                Airdrop Claimed Successfully!
-              </h3>
-            </div>
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: '12px',
-              padding: '1.5rem',
-              marginTop: '1rem'
-            }}>
-              <strong style={{ color: '#374151', fontSize: '0.95rem' }}>Transaction Details:</strong>
-              <pre style={{
-                backgroundColor: '#f8fafc',
-                padding: '1rem',
-                borderRadius: '8px',
-                fontSize: '0.8rem',
-                overflow: 'auto',
-                border: '1px solid #e2e8f0',
-                marginTop: '0.75rem',
-                color: '#374151',
-                fontFamily: 'Monaco, Consolas, monospace'
-              }}>
-                {JSON.stringify(verificationResult, null, 2)}
-              </pre>
-            </div>
-          </div>
-        )}
         
         {error && (
           <div style={{
