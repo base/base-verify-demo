@@ -297,30 +297,58 @@ export default function Home({ users: initialUsers, error }: Props) {
             }}>
               To prevent spam, we've limited this to X verified users only.
             </p>
-            
-            {/* Stats Card */}
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '20px',
-              padding: '2rem',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              display: 'inline-block',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '1.5rem' }}>🏆</span>
-                <span style={{ fontSize: '1.1rem', fontWeight: '600', color: 'white' }}>Total Claims</span>
-              </div>
+
+            {verificationError && (
               <div style={{
-                fontSize: '2.5rem',
-                fontWeight: '700',
-                color: '#FFD700',
-                textShadow: '0 2px 10px rgba(255, 215, 0, 0.3)'
+                background: 'rgba(239, 68, 68, 0.1)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '20px',
+                padding: '2rem',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                marginBottom: '2rem',
+                boxShadow: '0 8px 32px rgba(239, 68, 68, 0.1)',
+                maxWidth: '600px',
+                marginLeft: 'auto',
+                marginRight: 'auto'
               }}>
-                {users.length.toLocaleString()}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                  <div style={{
+                    width: '50px',
+                    height: '50px',
+                    background: 'linear-gradient(45deg, #ef4444, #dc2626)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.5rem'
+                  }}>
+                    ❌
+                  </div>
+                  <h3 style={{
+                    margin: '0',
+                    fontSize: '1.5rem',
+                    fontWeight: '600',
+                    color: '#ffffff'
+                  }}>
+                    Claim Error
+                  </h3>
+                </div>
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '12px',
+                  padding: '1.5rem'
+                }}>
+                  <p style={{
+                    margin: 0,
+                    fontSize: '1rem',
+                    color: '#374151',
+                    lineHeight: '1.5'
+                  }}>
+                    {verificationError}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         
         {/* Claim Section */}
@@ -479,6 +507,34 @@ export default function Home({ users: initialUsers, error }: Props) {
           )}
         </div>
 
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '4rem'
+        }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.15)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            padding: '2rem',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            display: 'inline-block',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '1.5rem' }}>🏆</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: '600', color: 'white' }}>Total Claims</span>
+            </div>
+            <div style={{
+              fontSize: '2.5rem',
+              fontWeight: '700',
+              color: '#FFD700',
+              textShadow: '0 2px 10px rgba(255, 215, 0, 0.3)'
+            }}>
+              {users.length.toLocaleString()}
+            </div>
+          </div>
+        </div>
+
         {verificationResult && (
           <div style={{
             background: 'rgba(34, 197, 94, 0.1)',
@@ -531,55 +587,6 @@ export default function Home({ users: initialUsers, error }: Props) {
               }}>
                 {JSON.stringify(verificationResult, null, 2)}
               </pre>
-            </div>
-          </div>
-        )}
-
-        {verificationError && (
-          <div style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '20px',
-            padding: '2rem',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            marginBottom: '3rem',
-            boxShadow: '0 8px 32px rgba(239, 68, 68, 0.1)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{
-                width: '50px',
-                height: '50px',
-                background: 'linear-gradient(45deg, #ef4444, #dc2626)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.5rem'
-              }}>
-                ❌
-              </div>
-              <h3 style={{
-                margin: '0',
-                fontSize: '1.5rem',
-                fontWeight: '600',
-                color: '#ffffff'
-              }}>
-                Claim Error
-              </h3>
-            </div>
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: '12px',
-              padding: '1.5rem'
-            }}>
-              <p style={{
-                margin: 0,
-                fontSize: '1rem',
-                color: '#374151',
-                lineHeight: '1.5'
-              }}>
-                {verificationError}
-              </p>
             </div>
           </div>
         )}
