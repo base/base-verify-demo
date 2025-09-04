@@ -48,20 +48,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Extract user data from verification response
       const addressMatch = message.match(/0x[a-fA-F0-9]{40}/);
       const walletAddress = addressMatch ? addressMatch[0] : '';
-      await prisma.verifiedUser.upsert({
-        where: { id: walletAddress },
+      
+      console.log('Extracted wallet address:', walletAddress);
+      
+      if (!walletAddress) {
+        console.error('Failed to extract wallet address from message:', message);
+        return res.status(400).json({
+          error: 'Could not extract wallet address from message'
+        });
+      }
+
+      console.log('Attempting to store user in database:', walletAddress);
+      
+      const result = await prisma.verifiedUser.upsert({
+        where: { address: walletAddress },
         update: {
           updatedAt: new Date()
         },
         create: {
-          id: walletAddress,
+          address: walletAddress,
           updatedAt: new Date()
         }
       });
 
+      console.log('Database operation successful:', result);
+
     } catch (dbError) {
       console.error('Error storing verification in database:', dbError);
-      // Don't fail the request if database storage fails
+      console.error('Database error details:', {
+        message: (dbError as Error).message,
+        stack: (dbError as Error).stack
+      });
+      
+      // Fail the request if database storage fails - this is important for verification integrity
+      return res.status(500).json({
+        error: 'Failed to store verification in database',
+        details: process.env.NODE_ENV === 'development' ? (dbError as Error).message : undefined
+      });
     }
 
     // Return 200 OK with the verification data
