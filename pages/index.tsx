@@ -265,57 +265,7 @@ export default function Home({ users: initialUsers, error }: Props) {
               </div>
               <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600', color: '#1a1a1a' }}>Airdrop Portal</h1>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              {verificationResult && (
-                <div style={{
-                  background: 'rgba(34, 197, 94, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  borderRadius: '12px',
-                  padding: '0.5rem 1rem',
-                  border: '1px solid rgba(34, 197, 94, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  boxShadow: '0 4px 16px rgba(34, 197, 94, 0.1)'
-                }}>
-                  <span style={{ fontSize: '1rem' }}>✅</span>
-                  <span style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#16a34a'
-                  }}>
-                    Airdrop Claimed!
-                  </span>
-                </div>
-              )}
-              {verificationError && (
-                <div style={{
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  borderRadius: '12px',
-                  padding: '0.5rem 1rem',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  boxShadow: '0 4px 16px rgba(239, 68, 68, 0.1)',
-                  maxWidth: '300px'
-                }}>
-                  <span style={{ fontSize: '1rem' }}>❌</span>
-                  <span style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#dc2626',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    {verificationError}
-                  </span>
-                </div>
-              )}
-              <WalletComponent />
-            </div>
+            <WalletComponent />
           </div>
         </div>
 
@@ -347,6 +297,66 @@ export default function Home({ users: initialUsers, error }: Props) {
             }}>
               To prevent spam, we've limited this to X verified users only.
             </p>
+
+            {verificationResult && (
+              <div style={{
+                background: 'rgba(34, 197, 94, 0.15)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '16px',
+                padding: '1rem 1.5rem',
+                border: '1px solid rgba(34, 197, 94, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.75rem',
+                boxShadow: '0 8px 32px rgba(34, 197, 94, 0.2)',
+                maxWidth: '400px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                marginBottom: '2rem'
+              }}>
+                <span style={{ fontSize: '1.5rem' }}>✅</span>
+                <span style={{
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
+                  color: 'white',
+                  textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)'
+                }}>
+                  Airdrop Claimed Successfully!
+                </span>
+              </div>
+            )}
+
+            {verificationError && (
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.15)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '16px',
+                padding: '1rem 1.5rem',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.75rem',
+                boxShadow: '0 8px 32px rgba(239, 68, 68, 0.2)',
+                maxWidth: '500px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                marginBottom: '2rem'
+              }}>
+                <span style={{ fontSize: '1.5rem' }}>❌</span>
+                <span style={{
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  color: 'white',
+                  textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+                  textAlign: 'center',
+                  lineHeight: '1.4'
+                }}>
+                  {verificationError}
+                </span>
+              </div>
+            )}
 
           </div>
         
