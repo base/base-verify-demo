@@ -16,10 +16,9 @@ import {
 
 export function WalletComponent() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+    <div style={{ display: 'flex', justifyContent: 'flex-end'}}>
       <Wallet>
         <ConnectWallet>
-          <Avatar style={{ height: '24px', width: '24px' }} />
           <Name />
         </ConnectWallet>
         <WalletDropdown>

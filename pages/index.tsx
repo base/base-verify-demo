@@ -235,7 +235,9 @@ export default function Home({ users: initialUsers, error }: Props) {
       <div style={{
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        display: 'flex',
+        flexDirection: 'column'
       }}>
         {/* Header */}
         <div style={{
@@ -247,8 +249,8 @@ export default function Home({ users: initialUsers, error }: Props) {
           top: 0,
           zIndex: 100
         }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ margin: '0 auto', padding: '0 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
               <div style={{
                 width: '28px',
                 height: '28px',
@@ -265,35 +267,37 @@ export default function Home({ users: initialUsers, error }: Props) {
               </div>
               <h1 style={{ margin: 0, fontSize: 'clamp(1.1rem, 4vw, 1.3rem)', fontWeight: '600', color: '#1a1a1a' }}>Airdrop Portal</h1>
             </div>
-            <WalletComponent />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <WalletComponent />
+            </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.5rem 1rem' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.5rem 1rem', flex: 1 }}>
           {/* Hero Section */}
           <div style={{
             textAlign: 'center',
-            marginBottom: '2rem'
+            marginBottom: '1.25rem'
           }}>
             <h2 style={{
-              fontSize: 'clamp(2rem, 8vw, 2.8rem)',
+              fontSize: 'clamp(1.75rem, 7vw, 2.5rem)',
               fontWeight: '700',
               color: 'white',
-              margin: '0 0 0.75rem 0',
+              margin: '0 0 0.5rem 0',
               textShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
               lineHeight: '1.1'
             }}>
               Claim Your Exclusive Airdrop
             </h2>
             <p style={{
-              fontSize: '1rem',
-              color: 'rgba(255, 255, 255, 0.9)',
-              margin: '0 0 1.5rem 0',
-              maxWidth: '400px',
+              fontSize: '0.9rem',
+              color: 'rgba(255, 255, 255, 0.85)',
+              margin: '0 0 1.25rem 0',
+              maxWidth: '320px',
               marginLeft: 'auto',
               marginRight: 'auto',
-              lineHeight: '1.4'
+              lineHeight: '1.3'
             }}>
               Limited to X verified users only.
             </p>
@@ -364,7 +368,7 @@ export default function Home({ users: initialUsers, error }: Props) {
         <div style={{
           display: 'flex',
           justifyContent: 'center',
-          marginBottom: '2rem'
+          marginBottom: '1.25rem'
         }}>
           {isConnected && address ? (
             <div style={{
@@ -473,72 +477,33 @@ export default function Home({ users: initialUsers, error }: Props) {
               </button>
             </div>
           ) : (
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '20px',
-              padding: '1.5rem',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-              textAlign: 'center',
-              maxWidth: '400px',
-              width: '100%'
-            }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                background: 'linear-gradient(45deg, #ff9a9e, #fecfef)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 0.75rem',
-                fontSize: '1.3rem'
-              }}>
-                🔗
-              </div>
-              <h3 style={{
-                margin: '0 0 0.5rem 0',
-                fontSize: '1.2rem',
-                fontWeight: '600',
-                color: '#1a1a1a'
-              }}>
-                Connect Wallet to Claim
-              </h3>
-              <p style={{
-                margin: '0',
-                color: '#666',
-                lineHeight: '1.4',
-                fontSize: '0.9rem'
-              }}>
-                Connect your wallet using the button above to claim your airdrop.
-              </p>
-            </div>
+            <></>
           )}
         </div>
 
         <div style={{
           textAlign: 'center',
-          marginBottom: '2rem'
+          marginBottom: '1.25rem'
         }}>
           <div style={{
-            background: 'rgba(255, 255, 255, 0.15)',
+            background: 'rgba(255, 255, 255, 0.12)',
             backdropFilter: 'blur(10px)',
-            borderRadius: '16px',
-            padding: '1.25rem',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '12px',
+            padding: '0.875rem 1.25rem',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
             display: 'inline-block',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '0.25rem' }}>
-              <span style={{ fontSize: '1.2rem' }}>🏆</span>
-              <span style={{ fontSize: '1rem', fontWeight: '600', color: 'white' }}>Total Claims</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', justifyContent: 'center', marginBottom: '0.125rem' }}>
+              <span style={{ fontSize: '1rem' }}>🏆</span>
+              <span style={{ fontSize: '0.875rem', fontWeight: '500', color: 'rgba(255, 255, 255, 0.9)' }}>Total Claims</span>
             </div>
             <div style={{
-              fontSize: '2rem',
+              fontSize: '1.75rem',
               fontWeight: '700',
               color: '#FFD700',
-              textShadow: '0 2px 10px rgba(255, 215, 0, 0.3)'
+              textShadow: '0 2px 8px rgba(255, 215, 0, 0.25)',
+              lineHeight: '1'
             }}>
               {users.length.toLocaleString()}
             </div>
@@ -604,35 +569,35 @@ export default function Home({ users: initialUsers, error }: Props) {
         
         {/* Claims History */}
         <div style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '20px',
-          padding: '1.25rem',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-          marginBottom: '1.5rem'
+          background: 'rgba(255, 255, 255, 0.96)',
+          backdropFilter: 'blur(12px)',
+          borderRadius: '16px',
+          padding: '1rem',
+          border: '1px solid rgba(255, 255, 255, 0.25)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06)',
+          marginBottom: '1.25rem'
         }}>
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
-            marginBottom: '1rem'
+            gap: '0.375rem',
+            marginBottom: '0.75rem'
           }}>
             <div style={{
-              width: '32px',
-              height: '32px',
+              width: '24px',
+              height: '24px',
               background: 'linear-gradient(45deg, #8b5cf6, #a855f7)',
-              borderRadius: '8px',
+              borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1rem'
+              fontSize: '0.75rem'
             }}>
               📊
             </div>
             <h3 style={{
               margin: '0',
-              fontSize: '1.2rem',
+              fontSize: '1rem',
               fontWeight: '600',
               color: '#1a1a1a'
             }}>
@@ -643,95 +608,95 @@ export default function Home({ users: initialUsers, error }: Props) {
           {users.length === 0 && !error ? (
             <div style={{
               textAlign: 'center',
-              padding: '2rem 1rem',
+              padding: '1.5rem 1rem',
               color: '#6b7280'
             }}>
               <div style={{
-                fontSize: '2rem',
-                marginBottom: '0.75rem'
+                fontSize: '1.5rem',
+                marginBottom: '0.5rem',
+                opacity: 0.7
               }}>
                 👥
               </div>
               <p style={{
-                fontSize: '1rem',
+                fontSize: '0.9rem',
                 fontWeight: '500',
-                margin: '0 0 0.25rem 0'
+                margin: '0 0 0.125rem 0',
+                color: '#4b5563'
               }}>
                 No claims yet
               </p>
               <p style={{
-                fontSize: '0.85rem',
+                fontSize: '0.75rem',
                 margin: '0',
                 color: '#9ca3af'
               }}>
-                Be the first to claim!
+                Be the first!
               </p>
             </div>
           ) : (
             <div style={{
               display: 'grid',
-              gap: '0.75rem',
-              maxHeight: '300px',
-              overflowY: 'auto'
+              gap: '0.5rem'
             }}>
-              {users.map((user, index) => (
+              {users.slice(-5).reverse().map((user, index) => (
                 <div 
                   key={user.id} 
                   style={{ 
-                    background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                    border: '1px solid #e2e8f0',
-                    padding: '0.875rem', 
-                    borderRadius: '12px',
+                    background: 'rgba(248, 250, 252, 0.8)',
+                    border: '1px solid rgba(226, 232, 240, 0.6)',
+                    padding: '0.625rem', 
+                    borderRadius: '8px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
-                    transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                    gap: '0.625rem',
+                    transition: 'all 0.2s ease'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.06)';
+                    e.currentTarget.style.background = 'rgba(248, 250, 252, 1)';
+                    e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.8)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.background = 'rgba(248, 250, 252, 0.8)';
+                    e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.6)';
                   }}
                 >
                   <div style={{
-                    width: '36px',
-                    height: '36px',
+                    width: '28px',
+                    height: '28px',
                     background: `linear-gradient(45deg, ${
                       ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'][index % 6]
                     }, ${
                       ['#764ba2', '#667eea', '#f5576c', '#f093fb', '#00f2fe', '#4facfe'][index % 6]
                     })`,
-                    borderRadius: '8px',
+                    borderRadius: '6px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '1rem',
+                    fontSize: '0.75rem',
                     flexShrink: 0
                   }}>
                     💎
                   </div>
                   
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
                       fontFamily: 'monospace',
-                      fontSize: '0.85rem',
+                      fontSize: '0.75rem',
                       fontWeight: '600',
                       color: '#374151',
-                      marginBottom: '0.125rem'
+                      marginBottom: '0.0625rem'
                     }}>
                       {user.address.slice(0, 6)}...{user.address.slice(-4)}
                     </div>
                     <div style={{
-                      fontSize: '0.7rem',
-                      color: '#6b7280',
+                      fontSize: '0.625rem',
+                      color: '#9ca3af',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.25rem'
                     }}>
-                      <span>🕒</span>
+                      <span style={{ fontSize: '0.5rem' }}>🕒</span>
                       {new Date(user.createdAt).toLocaleDateString('en-US', { 
                         month: 'short', 
                         day: 'numeric'
@@ -740,13 +705,17 @@ export default function Home({ users: initialUsers, error }: Props) {
                   </div>
                   
                   <div style={{
-                    background: 'rgba(34, 197, 94, 0.1)',
+                    width: '16px',
+                    height: '16px',
+                    background: 'rgba(34, 197, 94, 0.15)',
                     color: '#16a34a',
-                    padding: '0.125rem 0.5rem',
-                    borderRadius: '12px',
-                    fontSize: '0.65rem',
-                    fontWeight: '600',
-                    border: '1px solid rgba(34, 197, 94, 0.2)'
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.5rem',
+                    fontWeight: '700',
+                    border: '1px solid rgba(34, 197, 94, 0.3)'
                   }}>
                     ✓
                   </div>
@@ -756,20 +725,22 @@ export default function Home({ users: initialUsers, error }: Props) {
           )}
         </div>
         
-        {/* Footer */}
+        </div>
+        
+        {/* Footer - Fixed to bottom */}
         <div style={{
           textAlign: 'center',
-          paddingTop: '1.5rem',
-          borderTop: '1px solid rgba(255, 255, 255, 0.2)'
+          padding: '1rem',
+          borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+          marginTop: 'auto'
         }}>
           <p style={{
             color: 'rgba(255, 255, 255, 0.7)',
             fontSize: '0.8rem',
             margin: '0'
           }}>
-            Powered by Base • Secured by blockchain
+            Powered by Base
           </p>
-        </div>
         </div>
       </div>
       
