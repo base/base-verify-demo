@@ -14,6 +14,7 @@ datasource db {
 model VerifiedUser {
   id          String @id @default(cuid())
   address     String @unique
+  baseVerifyToken String? @unique @map("base_verify_token")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 

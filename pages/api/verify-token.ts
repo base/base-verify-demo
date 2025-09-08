@@ -43,6 +43,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Get the verification data from the response
     const verificationData = await verifyResponse.json();
 
+    // Extract the base verify token from response (support a few possible shapes)
+    const baseVerifyToken: string | undefined =
+      verificationData?.token ||
+      verificationData?.data?.token;
+
+    if (!baseVerifyToken || typeof baseVerifyToken !== 'string') {
+      return res.status(500).json({
+        error: 'Verification token missing from Base Verify response'
+      });
+    }
+
     // Store the verification data in the database
     try {
       // Extract user data from verification response
@@ -59,15 +70,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       console.log('Attempting to store user in database:', walletAddress);
+
+      // Enforce uniqueness of the base verify token before writing
+      const existingByToken = await prisma.verifiedUser.findUnique({
+        where: { baseVerifyToken }
+      });
+      if (existingByToken) {
+        return res.status(409).json({
+          error: 'This verification token has already been used.'
+        });
+      }
       
       const result = await prisma.verifiedUser.upsert({
         where: { address: walletAddress },
         update: {
-          updatedAt: new Date()
+          updatedAt: new Date(),
+          baseVerifyToken
         },
         create: {
           address: walletAddress,
-          updatedAt: new Date()
+          updatedAt: new Date(),
+          baseVerifyToken
         }
       });
 
