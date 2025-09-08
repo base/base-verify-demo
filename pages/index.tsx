@@ -42,6 +42,8 @@ export default function Home({ users: initialUsers, error }: Props) {
   const [verificationError, setVerificationError] = useState<string>('')
   const [isInMiniApp, setIsInMiniApp] = useState(false)
   const [isAutoVerification, setIsAutoVerification] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string>('')
   const { setFrameReady, isFrameReady } = useMiniKit();
 
   useEffect(() => {
@@ -108,6 +110,77 @@ export default function Home({ users: initialUsers, error }: Props) {
       }
     } catch (error) {
       console.error('Error fetching users:', error)
+    }
+  }
+
+  // Check if current wallet is verified
+  const isCurrentUserVerified = () => {
+    if (!address) return false
+    return users.some(user => user.address.toLowerCase() === address.toLowerCase())
+  }
+
+  const handleDelete = async () => {
+    if (!address || !signMessage) {
+      setDeleteError('Please connect your wallet to delete')
+      return
+    }
+
+    if (!isCurrentUserVerified()) {
+      setDeleteError('You are not in the verified users list')
+      return
+    }
+
+    setIsDeleting(true)
+    setDeleteError('')
+
+    try {
+      // Create the delete message
+      const deleteMessage = `Delete airdrop for ${address}`
+      
+      // Sign the message directly with the wallet
+      const signature = await new Promise<string>((resolve, reject) => {
+        signMessage(
+          { message: deleteMessage },
+          {
+            onSuccess: (signature) => resolve(signature),
+            onError: (error) => reject(error)
+          }
+        )
+      })
+
+      // Call our delete API endpoint
+      const response = await fetch('/api/delete-airdrop', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          signature: signature,
+          message: deleteMessage
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Delete successful:', data)
+        
+        // Update the users list to remove the deleted user
+        setUsers(prevUsers => prevUsers.filter(user => user.address.toLowerCase() !== address.toLowerCase()))
+        
+        // Clear verification result since user is no longer verified
+        setVerificationResult(null)
+        
+        // Optionally show success message
+        console.log('Airdrop deleted successfully')
+      } else {
+        const errorData = await response.json()
+        setDeleteError(errorData.error || 'Failed to delete airdrop')
+      }
+    } catch (err) {
+      console.error('Delete error:', err)
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete airdrop')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -359,6 +432,98 @@ export default function Home({ users: initialUsers, error }: Props) {
                 }}>
                   {verificationError}
                 </span>
+              </div>
+            )}
+
+            {deleteError && (
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.15)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '12px',
+                padding: '0.75rem 1rem',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 8px 32px rgba(239, 68, 68, 0.2)',
+                maxWidth: '350px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                marginBottom: '1.5rem'
+              }}>
+                <span style={{ fontSize: '1.2rem' }}>❌</span>
+                <span style={{
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  color: 'white',
+                  textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+                  textAlign: 'center',
+                  lineHeight: '1.3'
+                }}>
+                  {deleteError}
+                </span>
+              </div>
+            )}
+
+            {/* Delete Button - Only show if user is verified and connected */}
+            {isConnected && address && isCurrentUserVerified() && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                marginBottom: '1.5rem'
+              }}>
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: isDeleting 
+                      ? 'linear-gradient(45deg, #ccc, #999)' 
+                      : 'linear-gradient(45deg, #ef4444, #dc2626)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: isDeleting ? 'not-allowed' : 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: '500',
+                    boxShadow: isDeleting 
+                      ? 'none' 
+                      : '0 4px 15px rgba(239, 68, 68, 0.4)',
+                    transition: 'all 0.3s ease',
+                    transform: isDeleting ? 'none' : 'translateY(0)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isDeleting) {
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.5)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isDeleting) {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.4)';
+                    }
+                  }}
+                >
+                  {isDeleting ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                      <div style={{
+                        width: '14px',
+                        height: '14px',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        borderTop: '2px solid white',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                      }}></div>
+                      Deleting...
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                      🗑️ Delete My Airdrop
+                    </div>
+                  )}
+                </button>
               </div>
             )}
 
