@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '../../lib/prisma';
 import { ethers } from 'ethers';
+import { createPublicClient, http, isAddress } from 'viem';
+import { base } from 'viem/chains';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -29,22 +31,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const walletAddress = messageMatch[1];
     
-    // Verify the signature by recovering the signer address
-    let signerAddress: string;
+    // Verify signature using viem (supports EOA & EIP-1271)
     try {
-      signerAddress = ethers.verifyMessage(message, signature);
+      if (!isAddress(walletAddress)) {
+        return res.status(400).json({ error: 'Invalid wallet address in message' });
+      }
+
+      const client = createPublicClient({
+        chain: base,
+        transport: http(),
+      });
+
+      const isValid = await client.verifyMessage({
+        address: walletAddress as `0x${string}`,
+        message,
+        signature: signature as `0x${string}`,
+      });
+
+      if (!isValid) {
+        return res.status(400).json({ error: 'Invalid signature' });
+      }
     } catch (error) {
       console.error('Error verifying signature:', error);
-      return res.status(400).json({
-        error: 'Invalid signature'
-      });
-    }
-    
-    // Check if the signer address matches the address in the message
-    if (signerAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-      return res.status(400).json({
-        error: 'Signature address does not match the address in the delete message'
-      });
+      return res.status(400).json({ error: 'Invalid signature' });
     }
 
     // Check if the user exists in the database
