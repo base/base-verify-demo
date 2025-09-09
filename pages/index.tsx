@@ -285,8 +285,13 @@ export default function Home({ users: initialUsers, error }: Props) {
       } else {
         const errorData = await response.json()
         
+        // Handle 412 Precondition Failed - Twitter account not verified
+        if (response.status === 412) {
+          setVerificationError('Sorry, your X account isn\'t verified. You are not eligible for this airdrop.')
+          setIsAutoVerification(false) // Reset flag
+        }
         // If verification not found (404), handle based on context
-        if (response.status === 404) {
+        else if (response.status === 404) {
           if (isAutoVerifyFromSuccess) {
             // Show error message for auto-verification from success URL
             setVerificationError('Sorry, your X account isn\'t verified. You are not eligible for this airdrop.')
