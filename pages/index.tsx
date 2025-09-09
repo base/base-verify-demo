@@ -24,13 +24,12 @@ type Props = {
 }
 
 // Function to handle URL redirects in mini app and regular browser contexts
-async function openUrl(url: string, isInMiniApp: boolean) {
-  await sdk.actions.openUrl({ url });
-  // if (isInMiniApp) {
-  //   await sdk.actions.openMiniApp({ url });
-  // } else {
-  //   window.location.href = url;
-  // }
+async function openUrl(url: string, isInMiniApp: boolean) {  
+  if (isInMiniApp) {
+    await sdk.actions.openUrl({ url });
+  } else {
+    window.location.href = url;
+  }
 }
 
 export default function Home({ users: initialUsers, error }: Props) {
