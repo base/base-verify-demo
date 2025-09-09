@@ -35,6 +35,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     if (!verifyResponse.ok) {
       console.error('Base verify API error:', verifyResponse.status, verifyResponse.statusText);
+      
+      // Handle specific case where Twitter account verification traits are not satisfied
+      if (verifyResponse.status === 400) {
+        try {
+          const errorData = JSON.parse(responseBody);
+          if (errorData.message === 'verification_traits_not_satisfied') {
+            return res.status(412).json({
+              error: 'Twitter account verification required but not satisfied'
+            });
+          }
+        } catch (parseError) {
+          console.error('Error parsing response body:', parseError);
+        }
+      }
+      
       return res.status(verifyResponse.status).json({
         error: 'Failed to verify signature with base-verify-api'
       });
