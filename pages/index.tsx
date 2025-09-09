@@ -23,13 +23,32 @@ type Props = {
   error?: string
 }
 
-// Function to handle URL redirects in mini app and regular browser contexts
-async function openUrl(url: string, isInMiniApp: boolean) {  
-  if (isInMiniApp) {
-    await sdk.actions.openUrl({ url });
-  } else {
+async function openUrl(url: string, isInMiniApp: boolean) {
+  if (!isInMiniApp) {
     window.location.href = url;
+    return;
   }
+
+  const fallbacks = [
+    async () => { 
+      await sdk.actions.openMiniApp({ url });
+    },
+    async () => {
+      await sdk.actions.openUrl({ url });
+    },
+    async () => { window.location.href = url; }
+  ];
+
+  for (const fallback of fallbacks) {
+    try {
+      await fallback();
+      return;
+    } catch (error) {
+      // Continue to next fallback
+    }
+  }
+  
+  console.error('All URL opening methods failed');
 }
 
 export default function Home({ users: initialUsers, error }: Props) {
