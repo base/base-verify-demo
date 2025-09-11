@@ -1,6 +1,0 @@
-<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="16" cy="16" r="15" fill="#0052FF"/>
-  <text x="16" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">VV</text>
-  <circle cx="24" cy="8" r="4" fill="#00D395"/>
-  <path d="M22 8 L23.5 9.5 L26 6.5" stroke="white" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-</svg> 
