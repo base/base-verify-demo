@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const URL = "https://verify-demo-mini-app.vercel.app";
+  const URL = "https://base-camp-verify-demo.vercel.app";
 
   const config = {
     accountAssociation: {
@@ -16,21 +16,22 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     },
     frame: {
       version: "1",
-      name: "Demo BVMA",
-      subtitle: "Demo of Base Verify Mini App",
-      description: "A demo of using the Base Verify Mini App to obtain a verification.",
-      screenshotUrls: [`${URL}/screenshot1.svg`],
-      iconUrl: `${URL}/icon.svg`,
-      splashImageUrl: `${URL}/splash.svg`,
-      splashBackgroundColor: "#0052FF",
+      name: "Airdrop Demo",
+      subtitle: "Base Verify Identity Verification Demo",
+      tagline: "Base Verify Identity Verification Demo",
+      description: "Verify your identity with Base Verify to claim your airdrop",
+      iconUrl: `${URL}/icon.png`,
+      splashImageUrl: `${URL}/logo.png`,
+      splashBackgroundColor: '#000000',
+      requiredChains: ['eip155:8453'],
       homeUrl: URL,
+      noindex: true,
       primaryCategory: "utility" as const,
-      tags: ["verification", "identity", "base", "blockchain"],
-      heroImageUrl: `${URL}/hero.svg`,
-      tagline: "Demo of Base Verify Mini App",
-      ogTitle: "Demo - BVMA",
-      ogDescription: "A demo of using the Base Verify Mini App to obtain a verification.",
-      ogImageUrl: `${URL}/hero.svg`,
+      tags: ['verification', 'identity'],
+      heroImageUrl: `${URL}/hero.png`,
+      ogImageUrl: `${URL}/hero.png`,
+      ogTitle: "Airdrop Demo",
+      ogDescription: "Verify your identity with Base Verify to claim your airdrop",
     },
   } as const;
 
