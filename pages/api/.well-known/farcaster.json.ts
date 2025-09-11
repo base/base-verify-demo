@@ -5,9 +5,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const config = {
     accountAssociation: {
-      "header": "",
-      "payload": "",
-      "signature": ""
+      header: "eyJmaWQiOjEzOTEsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHgyMmM5M0I2Q0JGMTlGQmExMGVmOWRlQjFkNGIyYWFiNzJBRTliMkI5In0",
+      payload: "eyJkb21haW4iOiJiYXNlLWNhbXAtdmVyaWZ5LWRlbW8udmVyY2VsLmFwcCJ9",
+      signature: "MHg0ZTg2MWM3NjA2ZGRhNzk4OTI4YjNlMzZlZmI0ZWFiZWY2MzY5NGFjNzkzNWI3ZTJjOTBhZjczY2UxMDYxOGE4Mzc0NWQxMTdlYTA1MDAwMzA2MDQzNzUxY2RkZWUxNTUyZDdjNDRhZmEwZTU1YjYzMjczOWFlNTY1MDk3MmE0NTFj"
     },
     baseBuilder: {
       allowedAddresses: [
