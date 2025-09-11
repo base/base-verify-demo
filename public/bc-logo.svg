@@ -6,11 +6,14 @@
     </linearGradient>
   </defs>
   
+  <!-- White background -->
+  <rect width="1024" height="1024" fill="white"/>
+  
   <!-- Background circle -->
   <circle cx="512" cy="512" r="460" fill="url(#logoGradient)" stroke="white" stroke-width="20"/>
   
-  <!-- BC Text -->
-  <text x="512" y="600" text-anchor="middle" font-family="Arial, sans-serif" font-size="320" font-weight="bold" fill="white">BC</text>
+  <!-- AD Text -->
+  <text x="512" y="600" text-anchor="middle" font-family="Arial, sans-serif" font-size="320" font-weight="bold" fill="white">AD</text>
   
   <!-- Small verification checkmark -->
   <circle cx="768" cy="300" r="100" fill="#00D395"/>

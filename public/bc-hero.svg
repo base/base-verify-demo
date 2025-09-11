@@ -19,16 +19,15 @@
   <!-- Centered content -->
   <!-- Logo circle -->
   <circle cx="350" cy="315" r="80" fill="white"/>
-  <text x="350" y="335" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="bold" fill="#0052FF">BC</text>
+  <text x="350" y="335" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="bold" fill="#0052FF">AD</text>
   
   <!-- Verification badge -->
   <circle cx="420" cy="245" r="25" fill="#00D395"/>
   <path d="M408 245 L418 255 L432 235" stroke="white" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   
   <!-- Main heading -->
-  <text x="500" y="280" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white">Base Camp</text>
-  <text x="500" y="340" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white">Verify Demo</text>
+  <text x="500" y="330" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white">Airdrop Demo</text>
   
   <!-- Subtitle -->
-  <text x="500" y="390" font-family="Arial, sans-serif" font-size="32" fill="white" opacity="0.9">Secure Wallet Verification on Base</text>
+  <text x="500" y="380" font-family="Arial, sans-serif" font-size="32" fill="white" opacity="0.9">Secure Identity Verification on Base</text>
 </svg>
