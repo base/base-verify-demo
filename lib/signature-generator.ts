@@ -29,7 +29,7 @@ function extractDomainFromAppUrl(appUrl: string): string {
     return new URL(appUrl).hostname;
   } catch {
     // Fallback to a default domain if URL parsing fails
-    return 'verified-x-users.vercel.app';
+    return 'https://base-camp-verify-demo.vercel.app/';
   }
 }
 
