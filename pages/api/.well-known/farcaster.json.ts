@@ -17,8 +17,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     frame: {
       version: "1",
       name: "Airdrop Demo",
-      subtitle: "Base Verify Identity Verification Demo",
-      tagline: "Base Verify Identity Verification Demo",
+      subtitle: "powered by Base Verify",
+      tagline: "powered by Base Verify",
       description: "Verify your identity with Base Verify to claim your airdrop",
       iconUrl: `${URL}/icon.png`,
       splashImageUrl: `${URL}/logo.png`,
