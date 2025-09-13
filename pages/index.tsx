@@ -197,7 +197,14 @@ export default function Home({ users: initialUsers, error }: Props) {
       }
     } catch (err) {
       console.error('Delete error:', err)
-      setDeleteError(err instanceof Error ? err.message : 'Failed to delete airdrop')
+      
+      // Don't show error message if user rejected the signature
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete airdrop'
+      if (!errorMessage.toLowerCase().includes('user rejected') && 
+          !errorMessage.toLowerCase().includes('user denied') &&
+          !errorMessage.toLowerCase().includes('rejected')) {
+        setDeleteError(errorMessage)
+      }
     } finally {
       setIsDeleting(false)
     }
@@ -313,7 +320,14 @@ export default function Home({ users: initialUsers, error }: Props) {
       console.error('Verification error:', err)
       // Clear cache on error (might be signature issue)
       verifySignatureCache.clear();
-      setVerificationError(err instanceof Error ? err.message : 'Verification failed')
+      
+      // Don't show error message if user rejected the signature
+      const errorMessage = err instanceof Error ? err.message : 'Verification failed'
+      if (!errorMessage.toLowerCase().includes('user rejected') && 
+          !errorMessage.toLowerCase().includes('user denied') &&
+          !errorMessage.toLowerCase().includes('rejected')) {
+        setVerificationError(errorMessage)
+      }
       setIsAutoVerification(false) // Reset flag on error
     } finally {
       setIsVerifying(false)
@@ -828,7 +842,7 @@ export default function Home({ users: initialUsers, error }: Props) {
               display: 'grid',
               gap: '0.5rem'
             }}>
-              {users.slice(-5).reverse().map((user, index) => (
+              {users.slice(0, 5).map((user, index) => (
                 <div 
                   key={user.id} 
                   style={{ 
@@ -889,6 +903,10 @@ export default function Home({ users: initialUsers, error }: Props) {
                       {new Date(user.createdAt).toLocaleDateString('en-US', { 
                         month: 'short', 
                         day: 'numeric'
+                      })} {new Date(user.createdAt).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
                       })}
                     </div>
                   </div>
