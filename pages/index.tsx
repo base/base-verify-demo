@@ -24,6 +24,8 @@ type Props = {
 }
 
 async function openUrl(url: string, isInMiniApp: boolean) {
+  // eslint-disable-next-line no-console
+  console.log('openUrl function', url, isInMiniApp)
   if (!isInMiniApp) {
     window.location.href = url;
     return;
@@ -31,9 +33,13 @@ async function openUrl(url: string, isInMiniApp: boolean) {
 
   const fallbacks = [
     async () => { 
+      // eslint-disable-next-line no-console
+      console.log('openMiniApp', url)
       await sdk.actions.openMiniApp({ url });
     },
     async () => {
+      // eslint-disable-next-line no-console
+      console.log('openUrl', url)
       await sdk.actions.openUrl({ url });
     },
     async () => { window.location.href = url; }
