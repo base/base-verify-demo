@@ -27,7 +27,7 @@ async function openUrl(url: string, isInMiniApp: boolean) {
   // eslint-disable-next-line no-console
   console.log('openUrl function', url, isInMiniApp)
   if (!isInMiniApp) {
-    window.location.href = url;
+    window.location.href = url + '&hrefFirst=true';
     return;
   }
 
@@ -35,14 +35,14 @@ async function openUrl(url: string, isInMiniApp: boolean) {
     async () => { 
       // eslint-disable-next-line no-console
       console.log('openMiniApp', url)
-      await sdk.actions.openMiniApp({ url });
+      await sdk.actions.openMiniApp({ url: url + '&openMiniApp=true'});
     },
     async () => {
       // eslint-disable-next-line no-console
       console.log('openUrl', url)
-      await sdk.actions.openUrl({ url });
+      await sdk.actions.openUrl({ url: url + '&openUrl=true'});
     },
-    async () => { window.location.href = url; }
+    async () => { window.location.href = url + '&href=true'; }
   ];
 
   for (const fallback of fallbacks) {
