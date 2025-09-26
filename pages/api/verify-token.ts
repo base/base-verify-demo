@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { signature, message } = req.body;
+    const { signature, message, code, codeVerifier } = req.body;
 
     // Validate required parameters
     if (!signature || !message) {
@@ -17,25 +17,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    const requestBody: any = {
+      signature,
+      message
+    };
+
+    if (code && codeVerifier) {
+      requestBody.code = code;
+      requestBody.code_verifier = codeVerifier;
+    }
+
     // Call the base-verify-api to verify the signature
-    const verifyResponse = await fetch(`${config.baseVerifyUrl}/base_verify_token`, {
+    const verifyResponse = await fetch(`${config.baseVerifyUrl}/v1/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${config.baseVerifySecretKey}`
       },
-      body: JSON.stringify({
-        signature,
-        message
-      })
+      body: JSON.stringify(requestBody)
     });
 
     const responseBody = await verifyResponse.clone().text();
     console.log('Base verify API response body:', responseBody);
-    
+
     if (!verifyResponse.ok) {
       console.error('Base verify API error:', verifyResponse.status, verifyResponse.statusText);
-      
+
       // Handle specific case where Twitter account verification traits are not satisfied
       if (verifyResponse.status === 400) {
         try {
@@ -49,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           console.error('Error parsing response body:', parseError);
         }
       }
-      
+
       return res.status(verifyResponse.status).json({
         error: 'Failed to verify signature with base-verify-api'
       });
@@ -74,9 +81,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Extract user data from verification response
       const addressMatch = message.match(/0x[a-fA-F0-9]{40}/);
       const walletAddress = addressMatch ? addressMatch[0] : '';
-      
+
       console.log('Extracted wallet address:', walletAddress);
-      
+
       if (!walletAddress) {
         console.error('Failed to extract wallet address from message:', message);
         return res.status(400).json({
@@ -95,7 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           error: 'This verification token has already been used.'
         });
       }
-      
+
       const result = await prisma.verifiedUser.upsert({
         where: { address: walletAddress },
         update: {
@@ -117,7 +124,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: (dbError as Error).message,
         stack: (dbError as Error).stack
       });
-      
+
       // Fail the request if database storage fails - this is important for verification integrity
       return res.status(500).json({
         error: 'Failed to store verification in database',
