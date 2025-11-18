@@ -3,7 +3,7 @@
 import { AppConfig, OnchainKitProvider } from "@coinbase/onchainkit";
 import { base } from "wagmi/chains";
 import { PropsWithChildren } from "react";
-import { createConfig, http, WagmiProvider } from "wagmi";
+import { createConfig, http, injected, WagmiProvider } from "wagmi";
 import { baseAccount } from 'wagmi/connectors';
 import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
 
@@ -19,7 +19,8 @@ const onchainKitConfig: AppConfig = {
 
 export const config = createConfig({
   chains: [base],
-  connectors: [miniAppConnector(), baseAccount()],
+  // connectors: [miniAppConnector(), baseAccount()],
+  connectors: [injected()],
   transports: {
     [base.id]: http(),
   },
