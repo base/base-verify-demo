@@ -18,6 +18,8 @@ const onchainKitConfig: AppConfig = {
 
 console.log('NODE_ENV:', process.env.NODE_ENV)
 
+console.log('isproduction:', process.env.NODE_ENV === 'production')
+
 export const config = createConfig({
   chains: [base],
   connectors: [

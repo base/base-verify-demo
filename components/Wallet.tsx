@@ -9,6 +9,8 @@ export function WalletComponent() {
   const { isConnected, address } = useAccount()
   const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
+
+  console.log('connectors:', connectors)
   
   if (isConnected && address) {
     return (
