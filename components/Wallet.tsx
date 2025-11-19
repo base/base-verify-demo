@@ -3,11 +3,12 @@
 import { useAccount } from 'wagmi'
 import { useConnect } from 'wagmi'
 import { useDisconnect } from 'wagmi'
+import { config } from './Providers'
 
 
 export function WalletComponent() {
   const { isConnected, address } = useAccount()
-  const { connect, connectors } = useConnect()
+  const { connect, connectors } = useConnect({ config })
   const { disconnect } = useDisconnect()
 
   console.log('connectors:', connectors)
@@ -34,11 +35,20 @@ export function WalletComponent() {
       </div>
     )
   }
+
+
  
   return (
     <button
       type="button"
-      onClick={() => connect({ connector: connectors[0] })}
+      onClick={() => {
+        const preferredConnector = connectors.find(c => 
+          c.name.toLowerCase().includes('base') || 
+          c.name.toLowerCase().includes('farcaster')
+        ) || connectors[0]
+        
+        connect({ connector: preferredConnector })
+      }}
       style={{
         padding: '0.5rem 1rem',
         border: '1px solid #d1d5db',
