@@ -5,15 +5,113 @@ import { Layout } from '../components/Layout'
 import { generateSignature } from '../lib/signature-generator'
 import { config } from '../lib/config'
 
+type ExampleScenario = {
+  id: string
+  name: string
+  description: string
+  provider: string
+  traits: Record<string, string>
+  endpoint: string
+}
+
+const EXAMPLE_SCENARIOS: ExampleScenario[] = [
+  {
+    id: 'x-followers-100',
+    name: 'X Followers > 100',
+    description: 'Verify X account with more than 100 followers',
+    provider: 'x',
+    traits: { 'followers': 'gt:100' },
+    endpoint: '/v1/base_verify_token'
+  },
+  {
+    id: 'coinbase-europe',
+    name: 'Coinbase One - Europe',
+    description: 'Active Coinbase One subscriber in a European country',
+    provider: 'coinbase',
+    traits: { 
+      'coinbase_one_active': 'true',
+      'country': 'in:AT,BE,BG,HR,CY,CZ,DK,EE,FI,FR,DE,GR,HU,IE,IT,LV,LT,LU,MT,NL,PL,PT,RO,SK,SI,ES,SE'
+    },
+    endpoint: '/v1/base_verify_token'
+  },
+  {
+    id: 'coinbase-north-america',
+    name: 'Coinbase One - North America',
+    description: 'Active Coinbase One subscriber in North America (US, CA, MX)',
+    provider: 'coinbase',
+    traits: { 
+      'coinbase_one_active': 'true',
+      'country': 'in:US,CA,MX'
+    },
+    endpoint: '/v1/base_verify_token'
+  },
+  {
+    id: 'coinbase-billed-active',
+    name: 'Coinbase One - Billed & Active',
+    description: 'Coinbase One subscriber who has been billed and is currently active',
+    provider: 'coinbase',
+    traits: { 
+      'coinbase_one_active': 'true',
+      'coinbase_one_billed': 'true'
+    },
+    endpoint: '/v1/base_verify_token'
+  },
+  {
+    id: 'instagram-followers-100',
+    name: 'Instagram Followers > 100',
+    description: 'Verify Instagram account with more than 100 followers',
+    provider: 'instagram',
+    traits: { 'followers_count': 'gt:100' },
+    endpoint: '/v1/base_verify_token'
+  },
+  {
+    id: 'tiktok-followers-1000',
+    name: 'TikTok Followers > 1000',
+    description: 'Verify TikTok account with more than 1000 followers',
+    provider: 'tiktok',
+    traits: { 'follower_count': 'gt:1000' },
+    endpoint: '/v1/base_verify_token'
+  },
+  {
+    id: 'tiktok-likes-10000',
+    name: 'TikTok Likes > 10,000',
+    description: 'Verify TikTok account with more than 10,000 total likes',
+    provider: 'tiktok',
+    traits: { 'likes_count': 'gt:10000' },
+    endpoint: '/v1/base_verify_token'
+  },
+  {
+    id: 'tiktok-videos-50',
+    name: 'TikTok Videos > 50',
+    description: 'Verify TikTok account with more than 50 videos posted',
+    provider: 'tiktok',
+    traits: { 'video_count': 'gt:50' },
+    endpoint: '/v1/base_verify_token'
+  },
+  {
+    id: 'tiktok-creator',
+    name: 'TikTok Active Creator',
+    description: 'TikTok creator with 5K+ followers, 100K+ likes, and 100+ videos',
+    provider: 'tiktok',
+    traits: { 
+      'follower_count': 'gte:5000',
+      'likes_count': 'gte:100000',
+      'video_count': 'gte:100'
+    },
+    endpoint: '/v1/base_verify_token'
+  }
+]
+
 export default function Examples() {
   const { address, isConnected } = useAccount()
   const { signMessage } = useSignMessage()
+  const [selectedScenario, setSelectedScenario] = useState<ExampleScenario>(EXAMPLE_SCENARIOS[0])
   const [isChecking, setIsChecking] = useState(false)
   const [response, setResponse] = useState<any>(null)
   const [requestDetails, setRequestDetails] = useState<any>(null)
   const [error, setError] = useState<string>('')
 
-  const checkFollowers = async () => {
+  const executeVerificationCheck = async () => {
     if (!address || !signMessage) {
       setError('Please connect your wallet first')
       return
@@ -30,11 +128,11 @@ export default function Examples() {
     setRequestDetails(null)
 
     try {
-      // Generate SIWE signature with followers > 100 trait
+      // Generate SIWE signature with selected scenario traits
       const signature = await generateSignature({
         action: 'base_verify_token',
-        provider: 'x',
-        traits: { 'followers': 'gt:100' },
+        provider: selectedScenario.provider,
+        traits: selectedScenario.traits,
         signMessageFunction: async (message: string) => {
           return new Promise<string>((resolve, reject) => {
             signMessage(
@@ -52,7 +150,7 @@ export default function Examples() {
       console.log('Generated signature:', signature)
 
       // Call Base Verify API directly with publisher key
-      const apiUrl = `${config.baseVerifyApiUrl}/base_verify_token`
+      const apiUrl = `${config.baseVerifyApiUrl}${selectedScenario.endpoint}`
       const requestBody = {
         message: signature.message,
         signature: signature.signature,
@@ -94,8 +192,8 @@ export default function Examples() {
       })
 
     } catch (err: any) {
-      console.error('Error checking followers:', err)
-      setError(err.message || 'Failed to check followers')
+      console.error('Error checking verification:', err)
+      setError(err.message || 'Failed to check verification')
     } finally {
       setIsChecking(false)
     }
@@ -132,11 +230,46 @@ export default function Examples() {
             </p>
           </div>
 
+          {/* Scenario Selector */}
+          <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '1.5rem', border: '1px solid #e5e7eb', padding: '1.5rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+              Select Example Scenario
+            </label>
+            <select
+              value={selectedScenario.id}
+              onChange={(e) => {
+                const scenario = EXAMPLE_SCENARIOS.find(s => s.id === e.target.value)
+                if (scenario) {
+                  setSelectedScenario(scenario)
+                  setResponse(null)
+                  setRequestDetails(null)
+                  setError('')
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                fontSize: '0.95rem',
+                background: 'white',
+                cursor: 'pointer',
+                color: '#111'
+              }}
+            >
+              {EXAMPLE_SCENARIOS.map((scenario) => (
+                <option key={scenario.id} value={scenario.id}>
+                  {scenario.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Example Card */}
           <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '2rem', border: '1px solid #e5e7eb' }}>
             {/* Example Header */}
             <div style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                 <span style={{ 
                   background: '#3b82f6', 
                   color: 'white', 
@@ -144,19 +277,20 @@ export default function Examples() {
                   borderRadius: '6px', 
                   fontSize: '0.75rem', 
                   fontWeight: '600',
-                  fontFamily: 'monospace'
+                  fontFamily: 'monospace',
+                  flexShrink: 0
                 }}>
                   POST
                 </span>
-                <code style={{ fontSize: '0.875rem', color: '#111', fontFamily: 'monospace' }}>
-                  /v1/base_verify_token
+                <code style={{ fontSize: '0.875rem', color: '#111', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                  {selectedScenario.endpoint}
                 </code>
               </div>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.5rem', color: '#111' }}>
-                Check X (Twitter) Followers &gt; 100
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.5rem', color: '#111', lineHeight: '1.3' }}>
+                {selectedScenario.name}
               </h2>
-              <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
-                Verify that a connected wallet has linked an X account with more than 100 followers
+              <p style={{ color: '#6b7280', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                {selectedScenario.description}
               </p>
             </div>
 
@@ -168,11 +302,17 @@ export default function Examples() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                 <div>
                   <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Provider</div>
-                  <code style={{ fontSize: '0.875rem', color: '#111', fontFamily: 'monospace' }}>x</code>
+                  <code style={{ fontSize: '0.875rem', color: '#111', fontFamily: 'monospace' }}>{selectedScenario.provider}</code>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Trait</div>
-                  <code style={{ fontSize: '0.875rem', color: '#111', fontFamily: 'monospace' }}>followers:gt:100</code>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Traits</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    {Object.entries(selectedScenario.traits).map(([key, value]) => (
+                      <code key={key} style={{ fontSize: '0.75rem', color: '#111', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                        {key}:{value}
+                      </code>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Authentication</div>
@@ -184,10 +324,23 @@ export default function Examples() {
             {/* Wallet Connection Status */}
             <div style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>
               {isConnected ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></div>
-                  <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>Connected Wallet:</span>
-                  <code style={{ fontSize: '0.875rem', color: '#111', fontFamily: 'monospace', fontWeight: '500' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }}></div>
+                    <span style={{ fontSize: '0.875rem', color: '#6b7280', whiteSpace: 'nowrap' }}>Connected Wallet:</span>
+                  </div>
+                  <code style={{ 
+                    display: 'block',
+                    fontSize: '0.8rem', 
+                    color: '#111', 
+                    fontFamily: 'monospace', 
+                    fontWeight: '500',
+                    wordBreak: 'break-all',
+                    background: '#f3f4f6',
+                    padding: '0.5rem',
+                    borderRadius: '6px',
+                    marginTop: '0.25rem'
+                  }}>
                     {address}
                   </code>
                 </div>
@@ -200,7 +353,7 @@ export default function Examples() {
               )}
               
               <button
-                onClick={checkFollowers}
+                onClick={executeVerificationCheck}
                 disabled={!isConnected || isChecking}
                 style={{
                   marginTop: '1rem',
@@ -249,8 +402,16 @@ export default function Examples() {
                 <h3 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '1rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   📤 Request
                 </h3>
-                <div style={{ background: '#1f2937', borderRadius: '8px', padding: '1rem', overflow: 'auto' }}>
-                  <pre style={{ margin: 0, fontSize: '0.8rem', color: '#e5e7eb', fontFamily: 'monospace', lineHeight: '1.6' }}>
+                <div style={{ background: '#1f2937', borderRadius: '8px', padding: '1rem', overflowX: 'auto' }}>
+                  <pre style={{ 
+                    margin: 0, 
+                    fontSize: '0.75rem', 
+                    color: '#e5e7eb', 
+                    fontFamily: 'monospace', 
+                    lineHeight: '1.6',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-all'
+                  }}>
 {`${requestDetails.method} ${requestDetails.url}
 
 Headers:
@@ -266,7 +427,7 @@ ${JSON.stringify(requestDetails.body, null, 2)}`}
             {/* Response Display */}
             {response && (
               <div style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                   <h3 style={{ fontSize: '0.875rem', fontWeight: '600', margin: 0, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     📥 Response
                   </h3>
@@ -293,8 +454,16 @@ ${JSON.stringify(requestDetails.body, null, 2)}`}
                   </div>
                 </div>
 
-                <div style={{ background: '#1f2937', borderRadius: '8px', padding: '1rem', overflow: 'auto' }}>
-                  <pre style={{ margin: 0, fontSize: '0.8rem', color: '#e5e7eb', fontFamily: 'monospace', lineHeight: '1.6' }}>
+                <div style={{ background: '#1f2937', borderRadius: '8px', padding: '1rem', overflowX: 'auto' }}>
+                  <pre style={{ 
+                    margin: 0, 
+                    fontSize: '0.75rem', 
+                    color: '#e5e7eb', 
+                    fontFamily: 'monospace', 
+                    lineHeight: '1.6',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-all'
+                  }}>
                     {JSON.stringify(response.data, null, 2)}
                   </pre>
                 </div>
@@ -304,7 +473,7 @@ ${JSON.stringify(requestDetails.body, null, 2)}`}
                   <div style={{ marginTop: '1rem', padding: '1rem', background: '#d1fae5', borderRadius: '8px', border: '1px solid #10b981' }}>
                     <p style={{ margin: '0 0 0.5rem 0', fontWeight: '600', color: '#065f46' }}>✅ Success</p>
                     <p style={{ margin: 0, fontSize: '0.875rem', color: '#047857' }}>
-                      User has verified their X account and has more than 100 followers. The returned token is unique to this X account and can be used for Sybil resistance.
+                      User has verified their {selectedScenario.provider} account and meets all trait requirements. The returned token is unique to this {selectedScenario.provider} account and can be used for Sybil resistance.
                     </p>
                   </div>
                 )}
@@ -313,7 +482,7 @@ ${JSON.stringify(requestDetails.body, null, 2)}`}
                   <div style={{ marginTop: '1rem', padding: '1rem', background: '#dbeafe', borderRadius: '8px', border: '1px solid #3b82f6' }}>
                     <p style={{ margin: '0 0 0.5rem 0', fontWeight: '600', color: '#1e40af' }}>ℹ️ Verification Not Found</p>
                     <p style={{ margin: 0, fontSize: '0.875rem', color: '#1e3a8a' }}>
-                      This wallet has not verified an X account yet. Redirect the user to the Base Verify mini app to complete verification.
+                      This wallet has not verified a {selectedScenario.provider} account yet. Redirect the user to the Base Verify mini app to complete verification.
                     </p>
                   </div>
                 )}
@@ -322,7 +491,7 @@ ${JSON.stringify(requestDetails.body, null, 2)}`}
                   <div style={{ marginTop: '1rem', padding: '1rem', background: '#fef3c7', borderRadius: '8px', border: '1px solid #f59e0b' }}>
                     <p style={{ margin: '0 0 0.5rem 0', fontWeight: '600', color: '#92400e' }}>⚠️ Requirements Not Met</p>
                     <p style={{ margin: 0, fontSize: '0.875rem', color: '#b45309' }}>
-                      User has verified their X account, but they have fewer than 100 followers and do not meet the trait requirements.
+                      User has verified their {selectedScenario.provider} account, but they do not meet the trait requirements specified in this scenario.
                     </p>
                   </div>
                 )}
@@ -333,13 +502,14 @@ ${JSON.stringify(requestDetails.body, null, 2)}`}
           {/* Info Box */}
           <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '1.5rem' }}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#111' }}>
-              About This Example
+              About These Examples
             </h3>
             <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#6b7280', fontSize: '0.95rem', lineHeight: '1.75' }}>
               <li>Uses publisher key for client-side API calls (requires origin validation)</li>
               <li>Calls <code style={{ background: '#e5e7eb', padding: '0.125rem 0.375rem', borderRadius: '4px', fontSize: '0.875rem' }}>/v1/base_verify_token</code> endpoint directly</li>
-              <li>Demonstrates checking for specific trait conditions (followers &gt; 100)</li>
-              <li>Shows complete request and response for learning purposes</li>
+              <li>Demonstrates multiple verification scenarios across different providers (X, Coinbase, Instagram)</li>
+              <li>Shows trait-based requirements like follower counts, geographic restrictions, and subscription status</li>
+              <li>Displays complete request and response for learning purposes</li>
               <li>Returns deterministic token for Sybil resistance on success</li>
             </ul>
           </div>
