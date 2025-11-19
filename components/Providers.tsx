@@ -5,7 +5,6 @@ import { base } from "wagmi/chains";
 import { PropsWithChildren } from "react";
 import { createConfig, http, injected, WagmiProvider } from "wagmi";
 import { baseAccount } from 'wagmi/connectors';
-import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
 
 const onchainKitConfig: AppConfig = {
   appearance: {
@@ -19,8 +18,10 @@ const onchainKitConfig: AppConfig = {
 
 export const config = createConfig({
   chains: [base],
-  // connectors: [miniAppConnector(), baseAccount()],
-  connectors: [injected()],
+  connectors:
+    process.env.NODE_ENV === 'production'
+      ? [injected()]
+      : [baseAccount()],
   transports: {
     [base.id]: http(),
   },
