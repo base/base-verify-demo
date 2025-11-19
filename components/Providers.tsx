@@ -3,7 +3,7 @@
 import { AppConfig, OnchainKitProvider } from "@coinbase/onchainkit";
 import { base } from "wagmi/chains";
 import { PropsWithChildren } from "react";
-import { createConfig, http, injected, WagmiProvider } from "wagmi";
+import { createConfig, http, WagmiProvider } from "wagmi";
 import { baseAccount } from 'wagmi/connectors';
 
 const onchainKitConfig: AppConfig = {
@@ -18,10 +18,7 @@ const onchainKitConfig: AppConfig = {
 
 export const config = createConfig({
   chains: [base],
-  connectors:
-    process.env.NODE_ENV === 'production'
-      ? [injected()]
-      : [baseAccount()],
+  connectors: [baseAccount()],
   transports: {
     [base.id]: http(),
   },
