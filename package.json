@@ -17,9 +17,8 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@coinbase/onchainkit": "1.0.0-alpha.13",
-    "@farcaster/miniapp-sdk": "^0.2.1",
-    "@farcaster/miniapp-wagmi-connector": "^1.1.0",
+    "@coinbase/onchainkit": "1.1.2",
+    "@farcaster/miniapp-sdk": "0.1.9",
     "@prisma/client": "^5.20.0",
     "ethers": "6.12.1",
     "next": "^15.0.0",
