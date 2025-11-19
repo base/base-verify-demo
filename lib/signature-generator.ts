@@ -41,12 +41,24 @@ function buildSIWEMessage(options: SIWEOptions): { message: string; nonce: strin
     // Add base provider URN
     resources.push(`urn:verify:provider:${provider}`);
     
-    // Add traits as embedded provider URNs: urn:verify:provider:provider:trait_type:value
+    // Add traits as embedded provider URNs: urn:verify:provider:provider:trait_type:operation:value
     Object.entries(traits).forEach(([key, value]) => {
       const safeKey = key;
       const safeValue = String(value);
-      // TODO: eq here is hardcoded, other options are gt and 
-      resources.push(`urn:verify:provider:${provider}:${safeKey}:eq:${safeValue}`);
+      
+      // Parse operation from value if present (e.g., "gt:100" -> operation: "gt", value: "100")
+      // Supported operations: eq, gt, gte, lt, lte, in
+      const operationMatch = safeValue.match(/^(eq|gt|gte|lt|lte|in):(.+)$/);
+      
+      if (operationMatch) {
+        // Value contains operation prefix
+        const operation = operationMatch[1];
+        const actualValue = operationMatch[2];
+        resources.push(`urn:verify:provider:${provider}:${safeKey}:${operation}:${actualValue}`);
+      } else {
+        // No operation prefix, default to 'eq'
+        resources.push(`urn:verify:provider:${provider}:${safeKey}:eq:${safeValue}`);
+      }
     });
   }
 
