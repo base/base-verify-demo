@@ -257,7 +257,7 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
         signature = await generateSignature({
           action: 'base_verify_token',
           provider: 'coinbase',
-          traits: { 'coinbase_one': 'true' },
+          traits: { 'coinbase_one_active': 'true' },
           signMessageFunction: async (message: string) => {
             return new Promise<string>((resolve, reject) => {
               signMessage(
