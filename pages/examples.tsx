@@ -11,7 +11,6 @@ type ExampleScenario = {
   description: string
   provider: string
   traits: Record<string, string>
-  endpoint: string
 }
 
 const EXAMPLE_SCENARIOS: ExampleScenario[] = [
@@ -20,8 +19,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     name: 'X Followers > 100',
     description: 'Verify X account with more than 100 followers',
     provider: 'x',
-    traits: { 'followers': 'gt:100' },
-    endpoint: '/v1/base_verify_token'
+    traits: { 'followers': 'gt:100' }
   },
   {
     id: 'coinbase-europe',
@@ -31,8 +29,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     traits: { 
       'coinbase_one_active': 'true',
       'country': 'in:AT,BE,BG,HR,CY,CZ,DK,EE,FI,FR,DE,GR,HU,IE,IT,LV,LT,LU,MT,NL,PL,PT,RO,SK,SI,ES,SE'
-    },
-    endpoint: '/v1/base_verify_token'
+    }
   },
   {
     id: 'coinbase-north-america',
@@ -42,8 +39,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     traits: { 
       'coinbase_one_active': 'true',
       'country': 'in:US,CA,MX'
-    },
-    endpoint: '/v1/base_verify_token'
+    }
   },
   {
     id: 'coinbase-billed-active',
@@ -53,40 +49,35 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     traits: { 
       'coinbase_one_active': 'true',
       'coinbase_one_billed': 'true'
-    },
-    endpoint: '/v1/base_verify_token'
+    }
   },
   {
     id: 'instagram-followers-100',
     name: 'Instagram Followers > 100',
     description: 'Verify Instagram account with more than 100 followers',
     provider: 'instagram',
-    traits: { 'followers_count': 'gt:100' },
-    endpoint: '/v1/base_verify_token'
+    traits: { 'followers_count': 'gt:100' }
   },
   {
     id: 'tiktok-followers-1000',
     name: 'TikTok Followers > 1000',
     description: 'Verify TikTok account with more than 1000 followers',
     provider: 'tiktok',
-    traits: { 'follower_count': 'gt:1000' },
-    endpoint: '/v1/base_verify_token'
+    traits: { 'follower_count': 'gt:1000' }
   },
   {
     id: 'tiktok-likes-10000',
     name: 'TikTok Likes > 10,000',
     description: 'Verify TikTok account with more than 10,000 total likes',
     provider: 'tiktok',
-    traits: { 'likes_count': 'gt:10000' },
-    endpoint: '/v1/base_verify_token'
+    traits: { 'likes_count': 'gt:10000' }
   },
   {
     id: 'tiktok-videos-50',
     name: 'TikTok Videos > 50',
     description: 'Verify TikTok account with more than 50 videos posted',
     provider: 'tiktok',
-    traits: { 'video_count': 'gt:50' },
-    endpoint: '/v1/base_verify_token'
+    traits: { 'video_count': 'gt:50' }
   },
   {
     id: 'tiktok-creator',
@@ -97,8 +88,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
       'follower_count': 'gte:5000',
       'likes_count': 'gte:100000',
       'video_count': 'gte:100'
-    },
-    endpoint: '/v1/base_verify_token'
+    }
   }
 ]
 
@@ -150,7 +140,7 @@ export default function Examples() {
       console.log('Generated signature:', signature)
 
       // Call Base Verify API directly with publisher key
-      const apiUrl = `${config.baseVerifyApiUrl}${selectedScenario.endpoint}`
+      const apiUrl = `${config.baseVerifyApiUrl}/base_verify_token`
       const requestBody = {
         message: signature.message,
         signature: signature.signature,
@@ -279,11 +269,11 @@ export default function Examples() {
                       fontFamily: 'monospace',
                       flexShrink: 0
                     }}>
-                      POST
-                    </span>
-                    <code style={{ fontSize: '0.8rem', color: '#111', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                      {selectedScenario.endpoint}
-                    </code>
+                    POST
+                  </span>
+                  <code style={{ fontSize: '0.8rem', color: '#111', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                    /v1/base_verify_token
+                  </code>
                   </div>
                   <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.375rem', color: '#111', lineHeight: '1.3' }}>
                     {selectedScenario.name}
