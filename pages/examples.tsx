@@ -221,18 +221,15 @@ export default function Examples() {
       <Layout>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           {/* Header */}
-          <div style={{ marginBottom: '2rem' }}>
-            <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.5rem', color: '#111' }}>
+          <div style={{ marginBottom: '1rem' }}>
+            <h1 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '0.5rem', color: '#111' }}>
               Base Verify API Examples
             </h1>
-            <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>
-              Interactive API documentation with live requests and responses
-            </p>
           </div>
 
           {/* Scenario Selector */}
-          <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '1.5rem', border: '1px solid #e5e7eb', padding: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+          <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '1rem', border: '1px solid #e5e7eb', padding: '1rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
               Select Example Scenario
             </label>
             <select
@@ -266,131 +263,130 @@ export default function Examples() {
           </div>
 
           {/* Example Card */}
-          <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '2rem', border: '1px solid #e5e7eb' }}>
+          <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '1rem', border: '1px solid #e5e7eb' }}>
             {/* Example Header */}
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-                <span style={{ 
-                  background: '#3b82f6', 
-                  color: 'white', 
-                  padding: '0.25rem 0.75rem', 
-                  borderRadius: '6px', 
-                  fontSize: '0.75rem', 
-                  fontWeight: '600',
-                  fontFamily: 'monospace',
-                  flexShrink: 0
-                }}>
-                  POST
-                </span>
-                <code style={{ fontSize: '0.875rem', color: '#111', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                  {selectedScenario.endpoint}
-                </code>
-              </div>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.5rem', color: '#111', lineHeight: '1.3' }}>
-                {selectedScenario.name}
-              </h2>
-              <p style={{ color: '#6b7280', fontSize: '0.95rem', lineHeight: '1.5' }}>
-                {selectedScenario.description}
-              </p>
-            </div>
-
-            {/* Configuration */}
-            <div style={{ padding: '1.5rem', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-              <h3 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Request Configuration
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Provider</div>
-                  <code style={{ fontSize: '0.875rem', color: '#111', fontFamily: 'monospace' }}>{selectedScenario.provider}</code>
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Traits</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    {Object.entries(selectedScenario.traits).map(([key, value]) => (
-                      <code key={key} style={{ fontSize: '0.75rem', color: '#111', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                        {key}:{value}
-                      </code>
-                    ))}
+            <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1', minWidth: '200px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem', flexWrap: 'wrap' }}>
+                    <span style={{ 
+                      background: '#3b82f6', 
+                      color: 'white', 
+                      padding: '0.25rem 0.625rem', 
+                      borderRadius: '4px', 
+                      fontSize: '0.7rem', 
+                      fontWeight: '600',
+                      fontFamily: 'monospace',
+                      flexShrink: 0
+                    }}>
+                      POST
+                    </span>
+                    <code style={{ fontSize: '0.8rem', color: '#111', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                      {selectedScenario.endpoint}
+                    </code>
                   </div>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.375rem', color: '#111', lineHeight: '1.3' }}>
+                    {selectedScenario.name}
+                  </h2>
+                  <p style={{ color: '#6b7280', fontSize: '0.875rem', lineHeight: '1.4' }}>
+                    {selectedScenario.description}
+                  </p>
                 </div>
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Authentication</div>
-                  <code style={{ fontSize: '0.875rem', color: '#111', fontFamily: 'monospace' }}>Publisher Key</code>
-                </div>
+                
+                {/* Execute Button */}
+                <button
+                  onClick={executeVerificationCheck}
+                  disabled={!isConnected || isChecking}
+                  style={{
+                    flexShrink: 0,
+                    background: isConnected && !isChecking ? '#3b82f6' : '#9ca3af',
+                    color: 'white',
+                    padding: '0.625rem 1.25rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    cursor: isConnected && !isChecking ? 'pointer' : 'not-allowed',
+                    transition: 'all 0.2s',
+                    whiteSpace: 'nowrap',
+                    alignSelf: 'flex-start'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (isConnected && !isChecking) {
+                      e.currentTarget.style.background = '#2563eb';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (isConnected && !isChecking) {
+                      e.currentTarget.style.background = '#3b82f6';
+                    }
+                  }}
+                >
+                  {isChecking ? 'Requesting...' : 'Execute'}
+                </button>
+              </div>
+
+              {/* Compact Configuration */}
+              <div style={{ 
+                padding: '0.5rem 0.75rem', 
+                background: '#f9fafb', 
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                color: '#6b7280',
+                fontFamily: 'monospace',
+                wordBreak: 'break-all',
+                lineHeight: '1.5'
+              }}>
+                <span style={{ color: '#111', fontWeight: '500' }}>{selectedScenario.provider}</span>
+                {' · '}
+                {Object.entries(selectedScenario.traits).map(([key, value], idx) => (
+                  <span key={key}>
+                    {idx > 0 && ', '}
+                    <span style={{ color: '#111' }}>{key}:{value}</span>
+                  </span>
+                ))}
               </div>
             </div>
 
             {/* Wallet Connection Status */}
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
               {isConnected ? (
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }}></div>
-                    <span style={{ fontSize: '0.875rem', color: '#6b7280', whiteSpace: 'nowrap' }}>Connected Wallet:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }}></div>
+                    <span style={{ fontSize: '0.8rem', color: '#6b7280', whiteSpace: 'nowrap' }}>Connected Wallet:</span>
                   </div>
                   <code style={{ 
                     display: 'block',
-                    fontSize: '0.8rem', 
+                    fontSize: '0.75rem', 
                     color: '#111', 
                     fontFamily: 'monospace', 
                     fontWeight: '500',
                     wordBreak: 'break-all',
                     background: '#f3f4f6',
                     padding: '0.5rem',
-                    borderRadius: '6px',
-                    marginTop: '0.25rem'
+                    borderRadius: '4px'
                   }}>
                     {address}
                   </code>
                 </div>
               ) : (
-                <div style={{ padding: '1rem', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fcd34d' }}>
-                  <p style={{ color: '#92400e', fontSize: '0.875rem', margin: 0 }}>
+                <div style={{ padding: '0.75rem', background: '#fef3c7', borderRadius: '6px', border: '1px solid #fcd34d' }}>
+                  <p style={{ color: '#92400e', fontSize: '0.8rem', margin: 0 }}>
                     Connect your wallet to test this API endpoint
                   </p>
                 </div>
               )}
-              
-              <button
-                onClick={executeVerificationCheck}
-                disabled={!isConnected || isChecking}
-                style={{
-                  marginTop: '1rem',
-                  width: '100%',
-                  background: isConnected && !isChecking ? '#3b82f6' : '#9ca3af',
-                  color: 'white',
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '8px',
-                  border: 'none',
-                  fontSize: '0.95rem',
-                  fontWeight: '600',
-                  cursor: isConnected && !isChecking ? 'pointer' : 'not-allowed',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  if (isConnected && !isChecking) {
-                    e.currentTarget.style.background = '#2563eb';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (isConnected && !isChecking) {
-                    e.currentTarget.style.background = '#3b82f6';
-                  }
-                }}
-              >
-                {isChecking ? 'Making API Request...' : 'Execute API Request'}
-              </button>
             </div>
 
             {/* Error Display */}
             {error && (
-              <div style={{ padding: '1.5rem', background: '#fee2e2', borderBottom: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+              <div style={{ padding: '1rem', background: '#fee2e2', borderBottom: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '1rem' }}>⚠️</span>
                   <div>
-                    <p style={{ fontWeight: '600', color: '#991b1b', margin: '0 0 0.25rem 0' }}>Error</p>
-                    <p style={{ color: '#dc2626', fontSize: '0.875rem', margin: 0 }}>{error}</p>
+                    <p style={{ fontWeight: '600', color: '#991b1b', margin: '0 0 0.25rem 0', fontSize: '0.875rem' }}>Error</p>
+                    <p style={{ color: '#dc2626', fontSize: '0.8rem', margin: 0 }}>{error}</p>
                   </div>
                 </div>
               </div>
@@ -398,17 +394,17 @@ export default function Examples() {
 
             {/* Request Display */}
             {requestDetails && (
-              <div style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>
-                <h3 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '1rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+                <h3 style={{ fontSize: '0.8rem', fontWeight: '600', marginBottom: '0.5rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   📤 Request
                 </h3>
-                <div style={{ background: '#1f2937', borderRadius: '8px', padding: '1rem', overflowX: 'auto' }}>
+                <div style={{ background: '#1f2937', borderRadius: '6px', padding: '0.75rem', overflowX: 'auto' }}>
                   <pre style={{ 
                     margin: 0, 
-                    fontSize: '0.75rem', 
+                    fontSize: '0.7rem', 
                     color: '#e5e7eb', 
                     fontFamily: 'monospace', 
-                    lineHeight: '1.6',
+                    lineHeight: '1.5',
                     whiteSpace: 'pre-wrap',
                     wordBreak: 'break-all'
                   }}>
@@ -426,41 +422,41 @@ ${JSON.stringify(requestDetails.body, null, 2)}`}
 
             {/* Response Display */}
             {response && (
-              <div style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                  <h3 style={{ fontSize: '0.875rem', fontWeight: '600', margin: 0, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ padding: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <h3 style={{ fontSize: '0.8rem', fontWeight: '600', margin: 0, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     📥 Response
                   </h3>
                   <div style={{ 
                     display: 'inline-flex', 
                     alignItems: 'center', 
-                    gap: '0.5rem',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '8px',
+                    gap: '0.375rem',
+                    padding: '0.375rem 0.75rem',
+                    borderRadius: '6px',
                     background: getStatusBgColor(response.status),
                     border: `2px solid ${getStatusColor(response.status)}`
                   }}>
                     <span style={{ 
-                      fontSize: '1.25rem', 
+                      fontSize: '1.125rem', 
                       fontWeight: '700', 
                       color: getStatusColor(response.status),
                       fontFamily: 'monospace'
                     }}>
                       {response.status}
                     </span>
-                    <span style={{ fontSize: '0.875rem', fontWeight: '600', color: getStatusColor(response.status) }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: '600', color: getStatusColor(response.status) }}>
                       {response.statusText}
                     </span>
                   </div>
                 </div>
 
-                <div style={{ background: '#1f2937', borderRadius: '8px', padding: '1rem', overflowX: 'auto' }}>
+                <div style={{ background: '#1f2937', borderRadius: '6px', padding: '0.75rem', overflowX: 'auto' }}>
                   <pre style={{ 
                     margin: 0, 
-                    fontSize: '0.75rem', 
+                    fontSize: '0.7rem', 
                     color: '#e5e7eb', 
                     fontFamily: 'monospace', 
-                    lineHeight: '1.6',
+                    lineHeight: '1.5',
                     whiteSpace: 'pre-wrap',
                     wordBreak: 'break-all'
                   }}>
@@ -470,27 +466,27 @@ ${JSON.stringify(requestDetails.body, null, 2)}`}
 
                 {/* Status Explanations */}
                 {response.status === 200 && (
-                  <div style={{ marginTop: '1rem', padding: '1rem', background: '#d1fae5', borderRadius: '8px', border: '1px solid #10b981' }}>
-                    <p style={{ margin: '0 0 0.5rem 0', fontWeight: '600', color: '#065f46' }}>✅ Success</p>
-                    <p style={{ margin: 0, fontSize: '0.875rem', color: '#047857' }}>
+                  <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: '#d1fae5', borderRadius: '6px', border: '1px solid #10b981' }}>
+                    <p style={{ margin: '0 0 0.375rem 0', fontWeight: '600', color: '#065f46', fontSize: '0.875rem' }}>✅ Success</p>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#047857', lineHeight: '1.4' }}>
                       User has verified their {selectedScenario.provider} account and meets all trait requirements. The returned token is unique to this {selectedScenario.provider} account and can be used for Sybil resistance.
                     </p>
                   </div>
                 )}
 
                 {response.status === 404 && (
-                  <div style={{ marginTop: '1rem', padding: '1rem', background: '#dbeafe', borderRadius: '8px', border: '1px solid #3b82f6' }}>
-                    <p style={{ margin: '0 0 0.5rem 0', fontWeight: '600', color: '#1e40af' }}>ℹ️ Verification Not Found</p>
-                    <p style={{ margin: 0, fontSize: '0.875rem', color: '#1e3a8a' }}>
+                  <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: '#dbeafe', borderRadius: '6px', border: '1px solid #3b82f6' }}>
+                    <p style={{ margin: '0 0 0.375rem 0', fontWeight: '600', color: '#1e40af', fontSize: '0.875rem' }}>ℹ️ Verification Not Found</p>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#1e3a8a', lineHeight: '1.4' }}>
                       This wallet has not verified a {selectedScenario.provider} account yet. Redirect the user to the Base Verify mini app to complete verification.
                     </p>
                   </div>
                 )}
 
                 {response.status === 412 && (
-                  <div style={{ marginTop: '1rem', padding: '1rem', background: '#fef3c7', borderRadius: '8px', border: '1px solid #f59e0b' }}>
-                    <p style={{ margin: '0 0 0.5rem 0', fontWeight: '600', color: '#92400e' }}>⚠️ Requirements Not Met</p>
-                    <p style={{ margin: 0, fontSize: '0.875rem', color: '#b45309' }}>
+                  <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: '#fef3c7', borderRadius: '6px', border: '1px solid #f59e0b' }}>
+                    <p style={{ margin: '0 0 0.375rem 0', fontWeight: '600', color: '#92400e', fontSize: '0.875rem' }}>⚠️ Requirements Not Met</p>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#b45309', lineHeight: '1.4' }}>
                       User has verified their {selectedScenario.provider} account, but they do not meet the trait requirements specified in this scenario.
                     </p>
                   </div>
@@ -500,14 +496,14 @@ ${JSON.stringify(requestDetails.body, null, 2)}`}
           </div>
 
           {/* Info Box */}
-          <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '1.5rem' }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#111' }}>
+          <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '1rem' }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: '600', marginBottom: '0.5rem', color: '#111' }}>
               About These Examples
             </h3>
-            <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#6b7280', fontSize: '0.95rem', lineHeight: '1.75' }}>
+            <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#6b7280', fontSize: '0.8rem', lineHeight: '1.6' }}>
               <li>Uses publisher key for client-side API calls (requires origin validation)</li>
-              <li>Calls <code style={{ background: '#e5e7eb', padding: '0.125rem 0.375rem', borderRadius: '4px', fontSize: '0.875rem' }}>/v1/base_verify_token</code> endpoint directly</li>
-              <li>Demonstrates multiple verification scenarios across different providers (X, Coinbase, Instagram)</li>
+              <li>Calls <code style={{ background: '#e5e7eb', padding: '0.125rem 0.375rem', borderRadius: '4px', fontSize: '0.75rem' }}>/v1/base_verify_token</code> endpoint directly</li>
+              <li>Demonstrates multiple verification scenarios across different providers (X, Coinbase, Instagram, TikTok)</li>
               <li>Shows trait-based requirements like follower counts, geographic restrictions, and subscription status</li>
               <li>Displays complete request and response for learning purposes</li>
               <li>Returns deterministic token for Sybil resistance on success</li>
