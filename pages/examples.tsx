@@ -497,6 +497,7 @@ ${JSON.stringify(requestDetails.body, null, 2)}`}
               <li>Shows trait-based requirements like follower counts, geographic restrictions, and subscription status</li>
               <li>Displays complete request and response for learning purposes</li>
               <li>Returns deterministic token for Sybil resistance on success</li>
+              <li>All four providers (X, Coinbase, Instagram, TikTok) are fully supported</li>
             </ul>
           </div>
         </div>
