@@ -130,7 +130,7 @@ traits: { 'followers': 'gte:1000' }
 traits: { 'followers': 'gte:10000' }
 ```
 
-**Content Creator Verification:**
+**Multiple Requirements:**
 ```typescript
 // Active TikTok creator
 traits: {
