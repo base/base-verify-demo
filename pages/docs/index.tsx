@@ -590,7 +590,8 @@ export default function DocsPage({ content, headings }: DocsPageProps) {
                             lineHeight: '1.7',
                             color: '#374151',
                             marginBottom: '1.25rem',
-                            paddingLeft: '1.5rem'
+                            paddingLeft: '1.5rem',
+                            listStyleType: 'disc'
                           }}
                           {...props}
                         />
@@ -602,7 +603,8 @@ export default function DocsPage({ content, headings }: DocsPageProps) {
                             lineHeight: '1.7',
                             color: '#374151',
                             marginBottom: '1.25rem',
-                            paddingLeft: '1.5rem'
+                            paddingLeft: '1.5rem',
+                            listStyleType: 'decimal'
                           }}
                           {...props}
                         />

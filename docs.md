@@ -6,16 +6,14 @@ Base Verify is for mini-app builders to allow their users to prove they have ver
 
 **How it works:**
 
-1. Your app checks if user has verification → backend returns yes/no  
-2. If no verification → redirect user to Base Verify Mini App  
-3. User completes OAuth in mini app → returns to your app  
+1. Your app checks if user has verification → backend returns yes/no
+2. If no verification → redirect user to Base Verify Mini App
+3. User completes OAuth in mini app → returns to your app
 4. Check again → user now verified
 
 **Why This Matters:**
 
-Even if a wallet has few transactions, Base Verify reveals if the user is high-value through their verified social accounts (X Blue, Instagram, TikTok) or Coinbase One subscription. 
-
-This lets you identify quality users regardless of on-chain activity.
+Even if a wallet has few transactions, Base Verify reveals if the user is high-value through their verified social accounts (X Blue, Instagram, TikTok) or Coinbase One subscription. This lets you identify quality users regardless of on-chain activity.
 
 **Example Use Cases:**
 
@@ -30,25 +28,25 @@ This lets you identify quality users regardless of on-chain activity.
 ### The Complete Flow
 
 ```ts
-                   ┌─────────────┐                                                     
-                   │             │  1. User connects wallet                            
-                   │   Your      │  ────────────────────────────►                     
-                   │   Mini App  │                                                     
-                   │             │                                                     
-                   └──────┬──────┘                                                     
-                          │                                                            
-                          │ 2. App generates SIWE message (frontend)
-                          │    • Includes wallet address
-                          │    • Includes provider (x, coinbase, instagram, tiktok)
-                          │    • Includes traits (verified:true, followers:gt:1000)
-                          │    • Includes action (base_verify_token)
-                          │
-                          │ 3. User signs SIWE message with wallet
-                          │
-                          │ 4. Send signed message to Base Verify API
-                          │    (from frontend or via backend)
-                          │
-                          ▼
+                    ┌─────────────┐                                                     
+                    │             │  1. User connects wallet                            
+                    │   Your      │                       
+                    │   Mini App  │                                                     
+                    │             │                                                     
+                    └──────┬──────┘                                                     
+                           │                                                            
+                           │ 2. App generates SIWE message (frontend)
+                           │    • Includes wallet address
+                           │    • Includes provider (x, coinbase, instagram, tiktok)
+                           │    • Includes traits (verified:true, followers:gt:1000)
+                           │    • Includes action (base_verify_token)
+                           │
+                           │ 3. User signs SIWE message with wallet
+                           │
+                           │ 4. Send signed message to Base Verify API
+                           │    (from frontend or via backend)
+                           │
+                           ▼
        
    200 OK ←───────┌──────────────────┐───────→ 412
    Verified!      │                  │         User has account
