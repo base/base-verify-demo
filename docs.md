@@ -343,29 +343,24 @@ Before integrating Base Verify, you need:
 2. **A mini app** - Your app should run in Coinbase Wallet or Base ecosystem
 3. **Wallet integration** - Users must be able to connect and sign messages
 
-### Key Types
+### API Keys
 
-You'll receive two types of keys:
+You'll receive a **Secret Key** from the Base Verify team.
 
-**Publisher Key** (Public)
-- Safe to expose in client-side code
-- Used for client-to-API calls
-- Requires origin validation (your app domain must be allowlisted)
-- Format: `pub_...`
-
-**Secret Key** (Private)
-- NEVER expose to clients
-- Used only on your backend server
-- For privileged operations (verification checks, token generation)
+**Secret Key:**
+- **NEVER expose to clients or frontend code**
+- Must only be used on your backend server
+- Used for all API calls to Base Verify
 - Format: `sec_...`
+
+**Security Warning:** If you accidentally expose your secret key in frontend code, browser dev tools, or version control, contact the Base Verify team immediately to rotate it.
 
 ### Registering Your App
 
-When you receive your keys, you'll also need to register:
+When you receive your key, you'll also need to register:
 
 1. **Redirect URIs** - Where users return after verification (e.g., `https://yourapp.com`)
-2. **Allowed Origins** - Domains that can make client-side API calls (if using publisher key)
-3. **App Name** - How your app appears in the Base Verify flow
+2. **App Name** - How your app appears in the Base Verify flow
 
 Contact the Base Verify team to register these settings.
 
@@ -373,12 +368,14 @@ Contact the Base Verify team to register these settings.
 
 ## Integration Steps
 
+> **Security Warning:** Your Base Verify secret key must NEVER be exposed in frontend code, browser console, or version control. All Base Verify API calls must go through your backend server. If your key is compromised, contact the Base Verify team immediately.
+
 The integration involves several components working together:
 
-1. **SIWE Message Generation** - Create signed messages proving wallet ownership
-2. **Verification Check** - Call Base Verify API to check status
-3. **Redirect Handling** - Send users to Base Verify when needed
-4. **Token Storage** - Store verification tokens to prevent reuse
+1. **SIWE Message Generation** (Frontend) - Create signed messages proving wallet ownership
+2. **Verification Check** (Backend) - Call Base Verify API to check status
+3. **Redirect Handling** (Frontend) - Send users to Base Verify when needed
+4. **Token Storage** (Backend) - Store verification tokens to prevent reuse
 
 Let's walk through each component:
 
@@ -395,34 +392,21 @@ Create `lib/config.ts`:
 ```ts
 export const config = {
   appUrl: 'https://your-app.com',
-  baseVerifySecretKey: process.env.BASE_VERIFY_SECRET_KEY,
-  baseVerifyPublisherKey: process.env.BASE_VERIFY_PUBLISHER_KEY,
+  baseVerifySecretKey: process.env.BASE_VERIFY_SECRET_KEY,  // Backend only!
   baseVerifyApiUrl: 'https://verify.base.dev/v1',
   baseVerifyMiniAppUrl: 'https://verify.base.dev',
 }
 ```
 
-Create `.env.local`:
+Create `.env.local` (backend):
 
 ```shell
 BASE_VERIFY_SECRET_KEY=your_secret_key_here
-BASE_VERIFY_PUBLISHER_KEY=your_publisher_key_here
 ```
 
-Contact [rahul.patni@coinbase.com](mailto:rahul.patni@coinbase.com) to get your secret key and publisher key.
+**Important:** Never include your secret key in frontend code or environment variables that are exposed to the browser (like `NEXT_PUBLIC_*` vars).
 
-**Key Types:**
-
-You will be provided both a **publisher key** or a **secret key**.
-
-- **Publisher Key**
-  - Public identifier, safe to expose in client-side code
-  - Used to identify your app
-  - Can be included in frontend bundles
-
-- **Secret Key**
-  - Private credential, never expose to clients
-  - Used only on the server for privileged operations (auth, writes, webhooks)
+Contact [rahul.patni@coinbase.com](mailto:rahul.patni@coinbase.com) to get your secret key.
 
 ### Step 2: Create SIWE Signature Generator (Frontend)
 
@@ -473,7 +457,13 @@ export async function generateSignature(
 
 **Purpose:** Check if the user has the required verification by calling Base Verify API.
 
-**Runs on:** Can run on frontend (with publisher key) or backend (with secret key, recommended)
+**Runs on:** Backend only (secret key must not be exposed to frontend)
+
+**Flow:**
+1. Frontend generates SIWE message and gets user signature
+2. Frontend sends signature to YOUR backend
+3. Your backend calls Base Verify API with secret key
+4. Your backend returns result to frontend
 
 **Frontend code:**
 
@@ -492,40 +482,57 @@ async function checkVerification(address: string) {
     address
   )
   
-  // Check with backend
-  const response = await fetch(`${config.baseVerifyApiUrl}/base_verify_token`, {
+  // Send to YOUR backend (not directly to Base Verify)
+  const response = await fetch('/api/check-verification', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${config.baseVerifySecretKey}`,
     },
     body: JSON.stringify({
       signature: signature.signature,
       message: signature.message,
+      address: address
     })
   })
   
+  const data = await response.json();
+  return data;  // Your backend returns the result
+}
+```
+
+**Backend code (YOUR API endpoint):**
+
+```ts
+// pages/api/check-verification.ts
+export default async function handler(req, res) {
+  const { signature, message, address } = req.body;
+
+  // Call Base Verify with YOUR secret key
+  const response = await fetch('https://verify.base.dev/v1/base_verify_token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.BASE_VERIFY_SECRET_KEY}`,  // Secret key stays on backend
+    },
+    body: JSON.stringify({
+      signature: signature,
+      message: message,
+    })
+  });
+  
   if (response.ok) {
-    return { 
-      verified: true, 
-      data: await response.json() 
-    }
+    const data = await response.json();
+    return res.status(200).json({ verified: true, token: data.token });
   } else if (response.status === 404) {
-    return { 
-      verified: false, 
-      message: 'Verification not found. Redirecting to mini app...' 
-    }
+    return res.status(404).json({ verified: false, needsVerification: true });
   } else if (response.status === 400) {
     const data = await response.json();
     if (data.message === 'verification_traits_not_satisfied') {
-    return { 
-      verified: false, 
-      message: 'User does not meet trait requirements' 
-      }
+      return res.status(400).json({ verified: false, traitsNotMet: true });
     }
   }
   
-  throw new Error('Verification check failed')
+  return res.status(500).json({ error: 'Verification check failed' });
 }
 ```
 
@@ -561,7 +568,9 @@ After verification, user returns to your `redirect_uri` with `?success=true`. Ch
 
 Check if a wallet has a specific verification and retrieve the verification token.
 
-**Authentication:** Requires `Authorization: Bearer {SECRET_KEY}` or `Authorization: Bearer {PUBLISHER_KEY}`
+**Authentication:** Requires `Authorization: Bearer {SECRET_KEY}`
+
+**Important:** This endpoint must only be called from your backend. Never expose your secret key in frontend code.
 
 **Request:**
 
@@ -810,7 +819,7 @@ The interactive examples let you test real API calls to Base Verify:
 - Test your own verification status
 - Debug trait requirements before implementing
 
-**Note:** These examples use a publisher key (safe for client-side), so they work directly from your browser.
+**Note:** These examples call Base Verify API directly from your browser for demo purposes. In production, you should proxy all Base Verify API calls through your backend to keep your secret key secure.
 
 ---
 
@@ -1054,43 +1063,19 @@ Every API call requires a valid SIWE signature from the wallet owner. This preve
 - Third parties checking if a wallet is verified
 - Enumeration attacks
 
-**2. Origin Validation**
-
-Publisher keys (client-side) are locked to specific origins:
-- Only your registered domains can use your publisher key
-- Prevents key theft and misuse
-- Enforced at the API level
-
-**3. OAuth Token Security**
+**2. OAuth Token Security**
 
 - OAuth access tokens are encrypted at rest
 - Never exposed to your application
 - Used only by Base Verify to refresh provider data
 - Can be revoked by user at any time
 
-**4. User Control**
+**3. User Control**
 
 Users can delete their verifications at any time:
 - Removes all stored provider data
 - Invalidates future token generation
 - Your app's stored tokens become meaningless (user can't re-verify with same account)
-
-### Rate Limits
-
-To prevent abuse, Base Verify enforces rate limits:
-
-| Endpoint | Rate Limit | Per |
-| :---- | :---- | :---- |
-| `/v1/base_verify_token` | 100 requests | per minute per API key |
-| `/v1/verification_url` | 50 requests | per minute per API key |
-| `/v1/verifications` | 100 requests | per minute per API key |
-
-If you exceed rate limits, you'll receive a `429 Too Many Requests` response.
-
-**Best Practices:**
-- Cache verification results client-side (for the session)
-- Don't check verification on every page load
-- Implement exponential backoff on retries
 
 ### OAuth Security Model
 
@@ -1104,19 +1089,6 @@ If you exceed rate limits, you'll receive a `429 Too Many Requests` response.
 6. **OAuth token is encrypted** and stored securely
 
 **Your app never handles OAuth tokens or redirects.** This is all handled within the Base Verify Mini App.
-
-### Compliance
-
-- **GDPR**: Users can request deletion of their verification data
-- **CCPA**: Users have right to know what data is stored and can delete it
-- **Data Minimization**: Only essential provider data is stored
-
-### Reporting Security Issues
-
-If you discover a security vulnerability, please email:
-**security@base.org**
-
-Do not file public issues for security concerns.
 
 ---
 
