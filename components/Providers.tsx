@@ -22,13 +22,11 @@ console.log('isproduction:', process.env.NODE_ENV === 'production')
 const baseAccountConnector = baseAccount({
   appName: 'Base Verify Demo',
   appLogoUrl: 'https://baseverifydemo.com/icon.png',
-  preference: { walletUrl: process.env.NEXT_PUBLIC_KEYS_URL },
 });
 
 export const config = createConfig({
   chains: [base],
   connectors: [
-    injected(),
     baseAccountConnector,
   ],
   transports: {
