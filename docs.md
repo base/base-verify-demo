@@ -6,9 +6,9 @@ Base Verify is for mini-app builders to allow their users to prove they have ver
 
 **How it works:**
 
-1. Your app checks if user has verification → backend returns yes/no
-2. If no verification → redirect user to Base Verify Mini App
-3. User completes OAuth in mini app → returns to your app
+1. Your app checks if user has verification → backend returns yes/no  
+2. If no verification → redirect user to Base Verify Mini App  
+3. User completes OAuth in mini app → returns to your app  
 4. Check again → user now verified
 
 **Why This Matters:**
@@ -217,8 +217,6 @@ async function claimAirdrop(verificationToken: string, walletAddress: string) {
 ## Quick Start: Minimal Example
 
 Before diving into the full integration, here's the absolute minimal example showing the core flow. This example checks if a wallet has verified an X account (no trait requirements).
-
-**Note:** This uses the simple redirect flow. For production apps, consider the [PKCE flow](#option-b-pkce-flow-more-secure-recommended-for-production) for additional security.
 
 ### Step 1: Check Verification (Backend)
 
@@ -520,9 +518,9 @@ async function checkVerification(address: string) {
   } else if (response.status === 400) {
     const data = await response.json();
     if (data.message === 'verification_traits_not_satisfied') {
-      return { 
-        verified: false, 
-        message: 'User does not meet trait requirements' 
+    return { 
+      verified: false, 
+      message: 'User does not meet trait requirements' 
       }
     }
   }
@@ -536,8 +534,6 @@ async function checkVerification(address: string) {
 **Purpose:** If verification not found (404), redirect user to Base Verify Mini App to complete OAuth.
 
 **Runs on:** Frontend
-
-#### Option A: Simple Redirect (Easier)
 
 ```ts
 function redirectToVerifyMiniApp(provider: string) {
@@ -555,118 +551,7 @@ function redirectToVerifyMiniApp(provider: string) {
 }
 ```
 
-After verification, user returns to your `redirect_uri` with `?success=true`. Just check verification again.
-
-#### Option B: PKCE Flow (More Secure, Recommended for Production)
-
-**PKCE (Proof Key for Code Exchange)** provides additional security by preventing authorization code interception.
-
-**Step 4a: Generate PKCE Challenge**
-
-```ts
-// Generate random code verifier
-function generateCodeVerifier() {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  return btoa(String.fromCharCode(...array))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-}
-
-// Generate code challenge from verifier
-async function generateCodeChallenge(verifier: string) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(verifier);
-  const digest = await crypto.subtle.digest('SHA-256', data);
-  return btoa(String.fromCharCode(...new Uint8Array(digest)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-}
-```
-
-**Step 4b: Redirect with PKCE**
-
-```ts
-async function redirectToVerifyMiniAppPKCE(provider: string) {
-  // Generate PKCE parameters
-  const codeVerifier = generateCodeVerifier();
-  const codeChallenge = await generateCodeChallenge(codeVerifier);
-  const state = `verify-${Date.now()}`;
-
-  // Store verifier for later (when user returns)
-  sessionStorage.setItem('pkce_code_verifier', codeVerifier);
-  sessionStorage.setItem('pkce_state', state);
-
-  // Build redirect with PKCE parameters
-  const params = new URLSearchParams({
-    redirect_uri: config.appUrl,
-    providers: provider,
-    state: state,
-    code_challenge: codeChallenge,
-    code_challenge_method: 'S256'
-  });
-
-  const miniAppUrl = `${config.baseVerifyMiniAppUrl}?${params.toString()}`;
-  const deepLink = `cbwallet://miniapp?url=${encodeURIComponent(miniAppUrl)}`;
-  window.open(deepLink, '_blank');
-}
-```
-
-**Step 4c: Handle Return & Exchange Code**
-
-When user returns, the URL will contain `?code=...&state=...`:
-
-```ts
-// On page load, check for OAuth callback
-const urlParams = new URLSearchParams(window.location.search);
-const code = urlParams.get('code');
-const state = urlParams.get('state');
-
-if (code && state) {
-  // Verify state matches
-  const storedState = sessionStorage.getItem('pkce_state');
-  if (state !== storedState) {
-    throw new Error('State mismatch - possible CSRF attack');
-  }
-
-  // Get stored code verifier
-  const codeVerifier = sessionStorage.getItem('pkce_code_verifier');
-  
-  // Exchange code for verification token
-  const response = await fetch('https://verify.base.dev/v1/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${YOUR_SECRET_KEY}`,
-    },
-    body: JSON.stringify({
-      code: code,
-      code_verifier: codeVerifier
-    })
-  });
-
-  if (response.ok) {
-    const { token } = await response.json();
-    console.log('Verification token:', token);
-    
-    // Clean up
-    sessionStorage.removeItem('pkce_code_verifier');
-    sessionStorage.removeItem('pkce_state');
-    
-    // Store token and proceed with your app logic
-    await saveVerificationToken(token);
-  }
-}
-```
-
-**Which Should You Use?**
-
-- **Simple Redirect**: Good for testing, demos, low-security use cases
-- **PKCE Flow**: Recommended for production, especially for high-value operations (token gates, airdrops)
-
-The main difference: Simple redirect relies on re-checking with SIWE signature. PKCE provides an authorization code exchange for more robust security.
+After verification, user returns to your `redirect_uri` with `?success=true`. Check verification again to get the token.
 
 ---
 
@@ -739,56 +624,6 @@ Invalid or missing API key.
 ```ts
 {
   error: "unauthorized"
-}
-```
-
----
-
-### POST /v1/token
-
-Exchange authorization code for verification token (PKCE flow only).
-
-**Authentication:** Requires `Authorization: Bearer {SECRET_KEY}`
-
-**Request:**
-
-```ts
-{
-  code: string,           // Authorization code from redirect
-  code_verifier: string   // PKCE code verifier you generated
-}
-```
-
-**Example Request:**
-
-```bash
-curl -X POST https://verify.base.dev/v1/token \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_SECRET_KEY" \
-  -d '{
-    "code": "abc123...",
-    "code_verifier": "def456..."
-  }'
-```
-
-**Response (200 OK):**
-
-```ts
-{
-  token: string,        // Verification token
-  signature: string,    // Signature from Base Verify
-  action: string,       // Action that was verified
-  wallet: string        // User's wallet address
-}
-```
-
-**Response (400 Bad Request):**
-
-Invalid code or verifier.
-
-```ts
-{
-  error: "invalid_grant"
 }
 ```
 
