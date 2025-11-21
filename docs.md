@@ -39,16 +39,16 @@ This lets you identify quality users regardless of on-chain activity.
        │                                                            
        │ 2. App checks: "Does this wallet have X verification?"    
        │                                                            
-       ▼                                                            
-┌─────────────────────────────────────────────────────────────┐   
-│                                                               │   
-│  Your Backend generates SIWE (Sign-In with Ethereum) message │   
-│  • Includes wallet address                                    │   
-│  • Includes provider (x, coinbase, instagram, tiktok)        │   
-│  • Includes traits (e.g., verified:true, followers:gt:1000)  │   
-│  • Includes action (base_verify_token)                       │   
-│                                                               │   
-└───────────────────────┬───────────────────────────────────────┘   
+       ▼
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│  Your Backend generates SIWE (Sign-In with Ethereum)    │
+│  • Includes wallet address                              │
+│  • Includes provider (x, coinbase, instagram, tiktok)   │
+│  • Includes traits (verified:true, followers:gt:1000)   │
+│  • Includes action (base_verify_token)                  │
+│                                                         │
+└───────────────────────┬─────────────────────────────────┘
                         │                                            
                         │ 3. User signs SIWE message with wallet    
                         │                                            
@@ -87,11 +87,10 @@ This lets you identify quality users regardless of on-chain activity.
            ▼                                                        
 ┌─────────────┐                                                    
 │             │                                                    
-│   Your      │  8. Exchange code for verification                
-│   Mini App  │     (using PKCE)                                  
+│   Your      │  8. [OPTIONAL] Exchange code (PKCE flow)         
+│   Mini App  │     OR simply check again                         
 │             │                                                    
-│             │  9. Check again with Base Verify                  
-│             │     → Now returns 200 ✅                          
+│             │  9. Verification now returns 200 ✅              
 └─────────────┘                                                    
 ```
 
@@ -238,6 +237,8 @@ async function claimAirdrop(verificationToken: string, walletAddress: string) {
 ## Quick Start: Minimal Example
 
 Before diving into the full integration, here's the absolute minimal example showing the core flow. This example checks if a wallet has verified an X account (no trait requirements).
+
+**Note:** This uses the simple redirect flow. For production apps, consider the [PKCE flow](#option-b-pkce-flow-more-secure-recommended-for-production) for additional security.
 
 ### Step 1: Check Verification (Backend)
 
@@ -551,6 +552,8 @@ async function checkVerification(address: string) {
 
 **Runs on:** Frontend
 
+#### Option A: Simple Redirect (Easier)
+
 ```ts
 function redirectToVerifyMiniApp(provider: string) {
   // Build mini app URL with your app as the redirect
@@ -567,38 +570,242 @@ function redirectToVerifyMiniApp(provider: string) {
 }
 ```
 
-That's it. When the user completes verification in the mini app, they'll return to your `redirect_uri`. Check verification again and proceed.
+After verification, user returns to your `redirect_uri` with `?success=true`. Just check verification again.
+
+#### Option B: PKCE Flow (More Secure, Recommended for Production)
+
+**PKCE (Proof Key for Code Exchange)** provides additional security by preventing authorization code interception.
+
+**Step 4a: Generate PKCE Challenge**
+
+```ts
+// Generate random code verifier
+function generateCodeVerifier() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode(...array))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
+
+// Generate code challenge from verifier
+async function generateCodeChallenge(verifier: string) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
+```
+
+**Step 4b: Redirect with PKCE**
+
+```ts
+async function redirectToVerifyMiniAppPKCE(provider: string) {
+  // Generate PKCE parameters
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = await generateCodeChallenge(codeVerifier);
+  const state = `verify-${Date.now()}`;
+
+  // Store verifier for later (when user returns)
+  sessionStorage.setItem('pkce_code_verifier', codeVerifier);
+  sessionStorage.setItem('pkce_state', state);
+
+  // Build redirect with PKCE parameters
+  const params = new URLSearchParams({
+    redirect_uri: config.appUrl,
+    providers: provider,
+    state: state,
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256'
+  });
+
+  const miniAppUrl = `${config.baseVerifyMiniAppUrl}?${params.toString()}`;
+  const deepLink = `cbwallet://miniapp?url=${encodeURIComponent(miniAppUrl)}`;
+  window.open(deepLink, '_blank');
+}
+```
+
+**Step 4c: Handle Return & Exchange Code**
+
+When user returns, the URL will contain `?code=...&state=...`:
+
+```ts
+// On page load, check for OAuth callback
+const urlParams = new URLSearchParams(window.location.search);
+const code = urlParams.get('code');
+const state = urlParams.get('state');
+
+if (code && state) {
+  // Verify state matches
+  const storedState = sessionStorage.getItem('pkce_state');
+  if (state !== storedState) {
+    throw new Error('State mismatch - possible CSRF attack');
+  }
+
+  // Get stored code verifier
+  const codeVerifier = sessionStorage.getItem('pkce_code_verifier');
+  
+  // Exchange code for verification token
+  const response = await fetch('https://verify.base.dev/v1/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${YOUR_SECRET_KEY}`,
+    },
+    body: JSON.stringify({
+      code: code,
+      code_verifier: codeVerifier
+    })
+  });
+
+  if (response.ok) {
+    const { token } = await response.json();
+    console.log('Verification token:', token);
+    
+    // Clean up
+    sessionStorage.removeItem('pkce_code_verifier');
+    sessionStorage.removeItem('pkce_state');
+    
+    // Store token and proceed with your app logic
+    await saveVerificationToken(token);
+  }
+}
+```
+
+**Which Should You Use?**
+
+- **Simple Redirect**: Good for testing, demos, low-security use cases
+- **PKCE Flow**: Recommended for production, especially for high-value operations (token gates, airdrops)
+
+The main difference: Simple redirect relies on re-checking with SIWE signature. PKCE provides an authorization code exchange for more robust security.
 
 ---
 
 ## API Reference
 
-### POST /v1/base\_verify\_token
+### POST /v1/base_verify_token
 
-Check if a wallet has a specific verification.
+Check if a wallet has a specific verification and retrieve the verification token.
+
+**Authentication:** Requires `Authorization: Bearer {SECRET_KEY}` or `Authorization: Bearer {PUBLISHER_KEY}`
 
 **Request:**
 
 ```ts
 {
-  signature: string    // SIWE signature
+  signature: string,   // SIWE signature from wallet
   message: string      // SIWE message (includes provider/traits in resources)
 }
+```
+
+**Example Request:**
+
+```bash
+curl -X POST https://verify.base.dev/v1/base_verify_token \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_SECRET_KEY" \
+  -d '{
+    "signature": "0x1234...",
+    "message": "verify.base.dev wants you to sign in..."
+  }'
 ```
 
 **Response (200 OK):**
 
 ```ts
 {
-  token: string        // Base verify token
+  token: string,        // Deterministic verification token (for Sybil resistance)
+  signature: string,    // Signature from Base Verify
+  action: string,       // Action from SIWE message
+  wallet: string        // User's wallet address
 }
 ```
 
-See definition of token [above](#token-\(sybil-resistance\)).
+**Response (404 Not Found):**
 
-**Response (404 Not Found):** User doesn't have this verification. Redirect to mini app.
+User doesn't have this verification. Redirect to mini app.
 
-**Response (412 Precondition Failed):** User has provider account but doesn't meet trait requirements (e.g., not Coinbase One subscriber).
+```ts
+{
+  error: "verification_not_found"
+}
+```
+
+**Response (412 Precondition Failed):**
+
+User has provider account but doesn't meet trait requirements.
+
+```ts
+{
+  error: "verification_traits_not_satisfied"
+}
+```
+
+**Response (401 Unauthorized):**
+
+Invalid or missing API key.
+
+```ts
+{
+  error: "unauthorized"
+}
+```
+
+---
+
+### POST /v1/token
+
+Exchange authorization code for verification token (PKCE flow only).
+
+**Authentication:** Requires `Authorization: Bearer {SECRET_KEY}`
+
+**Request:**
+
+```ts
+{
+  code: string,           // Authorization code from redirect
+  code_verifier: string   // PKCE code verifier you generated
+}
+```
+
+**Example Request:**
+
+```bash
+curl -X POST https://verify.base.dev/v1/token \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_SECRET_KEY" \
+  -d '{
+    "code": "abc123...",
+    "code_verifier": "def456..."
+  }'
+```
+
+**Response (200 OK):**
+
+```ts
+{
+  token: string,        // Verification token
+  signature: string,    // Signature from Base Verify
+  action: string,       // Action that was verified
+  wallet: string        // User's wallet address
+}
+```
+
+**Response (400 Bad Request):**
+
+Invalid code or verifier.
+
+```ts
+{
+  error: "invalid_grant"
+}
+```
+
+---
 
 ### Mini App Redirect
 
@@ -755,6 +962,35 @@ traits: {
 ---
 
 ## Supported Providers & Traits
+
+Each provider section below includes:
+- **Trait Table**: All available traits and their types
+- **Code Examples**: How to use traits in your integration
+- **Try It Live**: Interactive examples you can test with your connected wallet
+
+### About "Try It Live" Examples
+
+The interactive examples let you test real API calls to Base Verify:
+
+**What happens when you click "Try It":**
+1. Your wallet signs a SIWE message with the specified traits
+2. The request is sent to `https://verify.base.dev/v1/base_verify_token`
+3. You see the full request (headers, body) and response (status, data)
+
+**Response Codes:**
+- **200 OK**: You have verified this provider and meet the trait requirements
+- **404 Not Found**: You haven't verified this provider yet (need to visit Base Verify Mini App)
+- **412 Precondition Failed**: You have the provider account but don't meet traits (e.g., not enough followers)
+
+**Why test this:**
+- See exactly how the API works
+- Understand request/response formats
+- Test your own verification status
+- Debug trait requirements before implementing
+
+**Note:** These examples use a publisher key (safe for client-side), so they work directly from your browser.
+
+---
 
 ### Coinbase
 
