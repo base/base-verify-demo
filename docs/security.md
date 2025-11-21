@@ -36,18 +36,7 @@ When you call `/v1/base_verify_token`, you receive:
 }
 ```
 
-**No PII is returned** unless you explicitly request disclosures (requires special permission):
-
-```json
-{
-  "token": "abc123...",
-  "disclosures": {
-    "x_username": "johndoe",           // Only if can_request_disclosures = true
-    "x_followers": 5000,
-    "x_verified_type": "blue"
-  }
-}
-```
+**No PII is returned** 
 
 ---
 

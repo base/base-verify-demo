@@ -221,8 +221,8 @@ Contact the Base Verify team for your **Secret Key**.
 ### Register Your App
 
 Provide the Base Verify team:
-1. **Redirect URI** - Where users return after verification (e.g., `https://yourapp.com`)
-2. **App Name** - How your app appears in Base Verify
+1. **Mini App Domain**
+2. **Redirect URI** - Where users return after verification (e.g., `https://yourapp.com`)
 
 ---
 
