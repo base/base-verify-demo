@@ -55,13 +55,21 @@ export default function Home({ initialUsers, error }: Props) {
     }
   }, [setFrameReady, isFrameReady]);
 
-  // Clear cache when address changes
+  // Clear cache when address changes or if cached signature is for wrong provider
   useEffect(() => {
     if (address) {
-      // Check if cached signature is for a different address
+      // Check if cached signature is for a different address or wrong provider
       const cachedSignature = verifySignatureCache.get();
-      if (cachedSignature && cachedSignature.address.toLowerCase() !== address.toLowerCase()) {
-        verifySignatureCache.clear();
+      if (cachedSignature) {
+        // Clear if address doesn't match
+        if (cachedSignature.address.toLowerCase() !== address.toLowerCase()) {
+          verifySignatureCache.clear();
+        }
+        // Clear if cached signature is for wrong provider (not x)
+        else if (!cachedSignature.message.includes('urn:verify:provider:x')) {
+          console.log('Clearing cache - signature is for different provider');
+          verifySignatureCache.clear();
+        }
       }
     }
   }, [address])
@@ -318,12 +326,9 @@ export default function Home({ initialUsers, error }: Props) {
         const errorData = await response.json()
 
         // Handle 400 with traits not satisfied - Twitter account not verified
-        if (response.status === 400) {
-          const data = await response.json();
-          if (data.message === 'verification_traits_not_satisfied') {
-            setVerificationError('Sorry, your X account does not have a blue checkmark. You are not eligible for this airdrop.')
-            setIsAutoVerification(false) // Reset flag
-          }
+        if (response.status === 400 && errorData.message === 'verification_traits_not_satisfied') {
+          setVerificationError('Sorry, your X account does not have a blue checkmark. You are not eligible for this airdrop.')
+          setIsAutoVerification(false) // Reset flag
         }
         // If verification not found (404), handle based on context
         else if (response.status === 404) {
