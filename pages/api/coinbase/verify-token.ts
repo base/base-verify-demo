@@ -45,13 +45,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!verifyResponse.ok) {
       console.error('Base verify API error:', verifyResponse.status, verifyResponse.statusText);
 
-      // Handle specific case where Twitter account verification traits are not satisfied
+      // Handle specific case where Coinbase account verification traits are not satisfied
       if (verifyResponse.status === 400) {
         try {
           const errorData = JSON.parse(responseBody);
           if (errorData.message === 'verification_traits_not_satisfied') {
             return res.status(412).json({
-              error: 'Twitter account verification required but not satisfied'
+              error: 'Coinbase account does not satisfy verification requirements.'
             });
           }
         } catch (parseError) {

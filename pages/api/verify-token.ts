@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const errorData = JSON.parse(responseBody);
           if (errorData.message === 'verification_traits_not_satisfied') {
             return res.status(412).json({
-              error: 'Twitter account verification required but not satisfied'
+              error: 'X account does not satisfy verification requirements.'
             });
           }
         } catch (parseError) {
