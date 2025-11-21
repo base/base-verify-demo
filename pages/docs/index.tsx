@@ -425,16 +425,25 @@ export default function DocsPage({ content, headings }: DocsPageProps) {
         html {
           scroll-padding-top: 100px;
         }
+        
+        @media (max-width: 1023px) {
+          .docs-sidebar {
+            display: none !important;
+          }
+          .docs-container {
+            flex-direction: column !important;
+          }
+        }
       `}</style>
 
-      <div style={{
+      <div className="docs-container" style={{
         display: 'flex',
         gap: '2rem',
         margin: '-1.5rem -1rem',
         padding: '1.5rem 1rem'
       }}>
           {/* Table of Contents */}
-          <aside style={{
+          <aside className="docs-sidebar" style={{
               width: '250px',
               flexShrink: 0,
               position: 'sticky',
