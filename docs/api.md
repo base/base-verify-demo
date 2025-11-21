@@ -24,6 +24,8 @@ Check if a wallet has a specific verification and retrieve the verification toke
 
 **Important:** This endpoint must only be called from your backend. Never expose your secret key in frontend code.
 
+**Security Requirement:** Before calling this endpoint, your backend **MUST** validate that the trait requirements in the SIWE message match what your backend expects. See [Security Best Practices](/docs/security#validate-trait-requirements) for details.
+
 ### Request
 
 ```ts
@@ -32,6 +34,33 @@ Check if a wallet has a specific verification and retrieve the verification toke
   message: string      // SIWE message (includes provider/traits in resources)
 }
 ```
+
+### Backend Validation Required
+
+Before forwarding the request to Base Verify, validate trait requirements:
+
+```typescript
+import { validateTraits } from './lib/trait-validator';
+
+// Define expected traits (must match frontend)
+const expectedTraits = {
+  'verified': 'true',
+  'followers': 'gte:1000'
+};
+
+// Validate message contains expected traits
+const validation = validateTraits(message, 'x', expectedTraits);
+
+if (!validation.valid) {
+  return res.status(400).json({
+    error: 'Invalid trait requirements in message'
+  });
+}
+
+// Safe to forward to Base Verify API
+```
+
+This prevents users from modifying trait requirements on the frontend to bypass your access controls.
 
 ### Example Request
 

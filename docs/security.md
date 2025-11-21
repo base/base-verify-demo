@@ -82,6 +82,48 @@ Users can delete their verifications at any time:
 
 ## Best Practices
 
+### Validate Trait Requirements
+
+**Critical Security Requirement:**
+
+When your backend receives a SIWE message from the frontend, you **MUST** validate that the trait requirements in the message match what your backend expects. This prevents users from modifying trait requirements on the frontend to bypass your access controls.
+
+**Example Attack Without Validation:**
+1. Your app requires users to have 100 followers
+2. User modifies the frontend to request only 10 followers
+3. User signs the modified message
+4. Without validation, your backend forwards the request to Base Verify
+5. User gains access with less than 100 followers ❌
+
+**Implementation:**
+
+```typescript
+import { validateTraits } from './lib/trait-validator';
+
+// Define what traits your app requires
+const expectedTraits = {
+  'followers': 'gte:100'
+};
+
+// Validate before forwarding to Base Verify
+const validation = validateTraits(message, 'x', expectedTraits);
+
+if (!validation.valid) {
+  return res.status(400).json({
+    error: 'Invalid trait requirements in message',
+    details: validation.error
+  });
+}
+
+// Now safe to forward to Base Verify API
+```
+
+**Key Points:**
+- Trait requirements in SIWE message are embedded as URNs (e.g., `urn:verify:provider:x:followers:gte:100`)
+- Users can modify these before signing
+- Backend must validate they match expected requirements
+- Validation must happen **before** calling Base Verify API
+
 ### Protect Your Secret Key
 
 **Never:**

@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { config } from '../../lib/config';
 import prisma from '../../lib/prisma';
+import { validateTraits } from '../../lib/trait-validator';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -14,6 +15,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!signature || !message) {
       return res.status(400).json({
         error: 'Missing required parameters: signature and message'
+      });
+    }
+
+    // Define expected trait requirements for X verification
+    // This MUST match what the frontend generates
+    const expectedTraits = {
+      'verified': 'true'
+    };
+
+    // Validate that the message contains the expected trait requirements
+    const validation = validateTraits(message, 'x', expectedTraits);
+    
+    if (!validation.valid) {
+      console.error('Trait validation failed:', validation.error);
+      console.error('Expected traits:', validation.expectedTraits);
+      console.error('Found traits:', validation.foundTraits);
+      
+      return res.status(400).json({
+        error: 'Invalid trait requirements in message',
+        details: validation.error
       });
     }
 
