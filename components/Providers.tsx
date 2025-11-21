@@ -28,13 +28,12 @@ const baseAccountConnector = baseAccount({
 export const config = createConfig({
   chains: [base],
   connectors: [
-    // process.env.NODE_ENV === 'production' ? injected() : baseAccount(),
+    injected(),
     baseAccountConnector,
   ],
   transports: {
     [base.id]: http(),
   },
-  autoConnect: true,
   ssr: true,
 });
 
