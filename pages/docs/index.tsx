@@ -10,6 +10,7 @@ import Head from 'next/head';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { Layout } from '../../components/Layout';
+import { useRouter } from 'next/router';
 
 interface DocsPageProps {
   content: string;
@@ -25,6 +26,14 @@ const NAV_ITEMS = [
 ]
 
 export default function DocsIndexPage({ content, headings }: DocsPageProps) {
+  const router = useRouter();
+  const currentPath = (router.asPath ?? router.pathname ?? '').split('?')[0];
+  const linkBaseStyle = {
+    color: '#0052FF',
+    textDecoration: 'underline',
+    fontWeight: 500,
+  } as const;
+
   return (
     <Layout title="Base Verify Documentation">
       <Head>
@@ -80,29 +89,38 @@ export default function DocsIndexPage({ content, headings }: DocsPageProps) {
               Docs
             </h3>
             <nav>
-              {NAV_ITEMS.map((item) => (
-                <a
-                  key={item.path}
-                  href={item.path}
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    color: item.path === '/docs' ? '#0052FF' : '#666',
-                    textDecoration: 'none',
-                    marginBottom: '0.75rem',
-                    fontWeight: item.path === '/docs' ? '600' : '400',
-                    transition: 'color 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = '#0052FF';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = item.path === '/docs' ? '#0052FF' : '#666';
-                  }}
-                >
-                  {item.label}
-                </a>
-              ))}
+              {NAV_ITEMS.map((item) => {
+                const isActive = currentPath === item.path;
+                return (
+                  <button
+                    key={item.path}
+                    type="button"
+                    onClick={() => router.push(item.path)}
+                    style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      color: isActive ? '#0052FF' : '#666',
+                      textDecoration: 'none',
+                      marginBottom: '0.75rem',
+                      fontWeight: isActive ? '600' : '400',
+                      transition: 'color 0.2s ease',
+                      background: 'transparent',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = '#0052FF';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = isActive ? '#0052FF' : '#666';
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
             </nav>
           </aside>
 
@@ -262,18 +280,39 @@ export default function DocsIndexPage({ content, headings }: DocsPageProps) {
                           {...props}
                         />
                       ),
-                      a: ({ node, ...props }) => (
-                        <a
-                          style={{
-                            color: '#0052FF',
-                            textDecoration: 'underline',
-                            fontWeight: '500'
-                          }}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          {...props}
-                        />
-                      ),
+                      a: ({ node, href, children, ...props }) => {
+                        if (href?.startsWith('/')) {
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => router.push(href)}
+                              style={{
+                                ...linkBaseStyle,
+                                background: 'transparent',
+                                border: 'none',
+                                padding: 0,
+                                cursor: 'pointer',
+                                fontSize: 'inherit',
+                                textAlign: 'left',
+                              }}
+                            >
+                              {children}
+                            </button>
+                          );
+                        }
+
+                        return (
+                          <a
+                            style={linkBaseStyle}
+                            target={href?.startsWith('#') ? undefined : '_blank'}
+                            rel={href?.startsWith('#') ? undefined : 'noopener noreferrer'}
+                            href={href}
+                            {...props}
+                          >
+                            {children}
+                          </a>
+                        );
+                      },
                       table: ({ node, ...props }) => (
                         <div style={{ overflowX: 'auto', marginBottom: '1.25rem' }}>
                           <table

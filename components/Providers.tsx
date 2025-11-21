@@ -34,6 +34,8 @@ export const config = createConfig({
   transports: {
     [base.id]: http(),
   },
+  autoConnect: true,
+  ssr: true,
 });
 
 const miniKitConfig = {

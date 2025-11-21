@@ -488,29 +488,40 @@ export default function DocsPage({ content, headings, title, slug }: DocsPagePro
               Docs
             </h3>
             <nav>
-              {NAV_ITEMS.map((item) => (
-                <a
-                  key={item.slug}
-                  href={`/docs/${item.slug === 'index' ? '' : item.slug}`}
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    color: slug === item.slug ? '#0052FF' : '#666',
-                    textDecoration: 'none',
-                    marginBottom: '0.75rem',
-                    fontWeight: slug === item.slug ? '600' : '400',
-                    transition: 'color 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = '#0052FF';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = slug === item.slug ? '#0052FF' : '#666';
-                  }}
-                >
-                  {item.label}
-                </a>
-              ))}
+              {NAV_ITEMS.map((item) => {
+                const targetPath = item.slug === 'index' ? '/docs' : `/docs/${item.slug}`;
+                const isActive = slug === item.slug;
+
+                return (
+                  <button
+                    key={item.slug}
+                    type="button"
+                    onClick={() => router.push(targetPath)}
+                    style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      color: isActive ? '#0052FF' : '#666',
+                      textDecoration: 'none',
+                      marginBottom: '0.75rem',
+                      fontWeight: isActive ? '600' : '400',
+                      transition: 'color 0.2s ease',
+                      background: 'transparent',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = '#0052FF';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = isActive ? '#0052FF' : '#666';
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
             </nav>
 
             {/* TOC for current page */}
