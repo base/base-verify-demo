@@ -13,7 +13,7 @@ Base Verify is for mini-app builders to allow their users to prove they have ver
 
 **Why This Matters:**
 
-Even if a wallet has few transactions, Base Verify reveals if the user is high-value through their verified X account or Coinbase One subscription. 
+Even if a wallet has few transactions, Base Verify reveals if the user is high-value through their verified social accounts (X Blue, Instagram, TikTok) or Coinbase One subscription. 
 
 This lets you identify quality users regardless of on-chain activity.
 
@@ -27,7 +27,7 @@ This lets you identify quality users regardless of on-chain activity.
 
 ### Provider
 
-An identity platform that Base Verify integrates with. Currently supports **X (Twitter)** and **Coinbase**, with Instagram and TikTok coming soon.
+An identity platform that Base Verify integrates with. Currently supports **X (Twitter)**, **Coinbase**, **Instagram**, and **TikTok**.
 
 ### Verification
 
@@ -40,12 +40,16 @@ A specific attribute of the Provider account that can be verified.
 **Examples:**
 
 - `verified: true` \- X account has blue checkmark  
-- `coinbase_one: true` \- Active Coinbase One subscription  
+- `coinbase_one_active: true` \- Active Coinbase One subscription  
 - `followers: gt:1000` \- X account has over 1000 followers
+- `followers_count: gte:5000` \- Instagram account with 5000+ followers
+- `video_count: gte:50` \- TikTok account with 50+ videos
 
-### Token (Sybil Resistance) {#token-(sybil-resistance)}
+### Token - Sybil Resistance
 
 A deterministic identifier tied to the Provider account, not the wallet. **This is the key anti-sybil mechanism.**
+
+It is unique per "user" per provider.
 
 **How it works:**
 
@@ -267,14 +271,14 @@ See definition of token [above](#token-\(sybil-resistance\)).
 
 When redirecting to Base Verify Mini App:
 
-```
+```ts
 https://verify.base.dev?redirect_uri={your_app_url}&providers={provider}
 ```
 
 | Parameter | Required | Description |
 | :---- | :---- | :---- |
 | `redirect_uri` | Yes | Where to send user after verification |
-| `providers` | Yes | Provider to verify: `coinbase` XOR  `x` |
+| `providers` | Yes | Provider to verify: `coinbase`, `x`, `instagram`, or `tiktok` |
 
 The user completes verification in the mini app, then returns to your `redirect_uri`.
 
@@ -290,7 +294,8 @@ The user completes verification in the mini app, then returns to your `redirect_
 
 | Trait | Type | Operations | Description | Example Values |
 | :---- | :---- | :---- | :---- | :---- |
-| `coinbase_one` | Boolean | `eq` | Active Coinbase One subscription | `"true"`, `"false"` |
+| `coinbase_one_active` | Boolean | `eq` | Active Coinbase One subscription | `"true"`, `"false"` |
+| `coinbase_one_billed` | Boolean | `eq` | User has been billed for Coinbase One | `"true"`, `"false"` |
 | `country` | String | `eq`, `in` | User's country code (ISO 3166-1 alpha-2) | `"US"`, `"CA,US,MX"` |
 
 **Examples:**
@@ -299,7 +304,13 @@ The user completes verification in the mini app, then returns to your `redirect_
 // Check for Coinbase One subscribers
 {
   provider: 'coinbase',
-  traits: { 'coinbase_one': 'true' }
+  traits: { 'coinbase_one_active': 'true' }
+}
+
+// Check for billed Coinbase One subscribers
+{
+  provider: 'coinbase',
+  traits: { 'coinbase_one_billed': 'true' }
 }
 
 // Check for specific country
@@ -361,6 +372,103 @@ The user completes verification in the mini app, then returns to your `redirect_
     'verified': 'true',
     'followers': 'gte:10000'
   }
+}
+```
+
+### Instagram
+
+**Provider:** `instagram`
+
+**Available Traits:**
+
+| Trait | Type | Operations | Description | Example Values |
+| :---- | :---- | :---- | :---- | :---- |
+| `username` | String | `eq` | Instagram username | `"john_doe"` |
+| `followers_count` | Integer | `eq`, `gt`, `gte`, `lt`, `lte` | Number of followers | `"1000"`, `"50000"` |
+| `instagram_id` | String | `eq` | Unique Instagram user ID | `"1234567890"` |
+
+**Examples:**
+
+```ts
+// Check for specific username
+{
+  provider: 'instagram',
+  traits: { 'username': 'john_doe' }
+}
+
+// Check for follower count (greater than)
+{
+  provider: 'instagram',
+  traits: { 'followers_count': 'gt:1000' }
+}
+
+// Check for follower count (greater than or equal to)
+{
+  provider: 'instagram',
+  traits: { 'followers_count': 'gte:5000' }
+}
+
+// Combine multiple traits
+{
+  provider: 'instagram',
+  traits: { 
+    'username': 'john_doe',
+    'followers_count': 'gte:10000'
+  }
+}
+```
+
+### TikTok
+
+**Provider:** `tiktok`
+
+**Available Traits:**
+
+| Trait | Type | Operations | Description | Example Values |
+| :---- | :---- | :---- | :---- | :---- |
+| `open_id` | String | `eq` | TikTok Open ID (unique per app) | `"abc123..."` |
+| `union_id` | String | `eq` | TikTok Union ID (unique across apps) | `"def456..."` |
+| `display_name` | String | `eq` | TikTok display name | `"John Doe"` |
+| `follower_count` | Integer | `eq`, `gt`, `gte`, `lt`, `lte` | Number of followers | `"1000"`, `"50000"` |
+| `following_count` | Integer | `eq`, `gt`, `gte`, `lt`, `lte` | Number of accounts following | `"500"`, `"2000"` |
+| `likes_count` | Integer | `eq`, `gt`, `gte`, `lt`, `lte` | Total likes received | `"10000"`, `"100000"` |
+| `video_count` | Integer | `eq`, `gt`, `gte`, `lt`, `lte` | Number of videos posted | `"50"`, `"200"` |
+
+**Examples:**
+
+```ts
+// Check for follower count
+{
+  provider: 'tiktok',
+  traits: { 'follower_count': 'gt:1000' }
+}
+
+// Check for likes count
+{
+  provider: 'tiktok',
+  traits: { 'likes_count': 'gte:10000' }
+}
+
+// Check for video count
+{
+  provider: 'tiktok',
+  traits: { 'video_count': 'gte:50' }
+}
+
+// Combine multiple traits (e.g., active creator)
+{
+  provider: 'tiktok',
+  traits: { 
+    'follower_count': 'gte:5000',
+    'likes_count': 'gte:100000',
+    'video_count': 'gte:100'
+  }
+}
+
+// Check for specific display name
+{
+  provider: 'tiktok',
+  traits: { 'display_name': 'John Doe' }
 }
 ```
 
