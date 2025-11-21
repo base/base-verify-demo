@@ -377,7 +377,7 @@ ${JSON.stringify(requestDetails.body, null, 2)}`}
             </div>
           )}
 
-          {response.status === 412 && (
+          {(response.status === 400 && response.data?.message === 'verification_traits_not_satisfied') && (
             <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: '#fef3c7', borderRadius: '6px', border: '1px solid #f59e0b' }}>
               <p style={{ margin: '0 0 0.375rem 0', fontWeight: '600', color: '#92400e', fontSize: '0.875rem' }}>Requirements Not Met</p>
               <p style={{ margin: 0, fontSize: '0.8rem', color: '#b45309', lineHeight: '1.4' }}>

@@ -257,7 +257,10 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
         signature = await generateSignature({
           action: 'base_verify_token',
           provider: 'coinbase',
-          traits: { 'coinbase_one_active': 'true' },
+          traits: { 
+            'coinbase_one_active': 'true',
+            'country': 'in:US,CA,MX'
+          },
           signMessageFunction: async (message: string) => {
             return new Promise<string>((resolve, reject) => {
               signMessage(
@@ -318,16 +321,19 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
       } else {
         const errorData = await response.json()
 
-        // Handle 412 Precondition Failed - Coinbase One not active
-        if (response.status === 412) {
-          setVerificationError('Sorry, you need an active Coinbase One membership to claim this airdrop.')
-          setIsAutoVerification(false) // Reset flag
+        // Handle 400 with traits not satisfied - Coinbase One not active or wrong region
+        if (response.status === 400) {
+          const data = await response.json();
+          if (data.message === 'verification_traits_not_satisfied') {
+            setVerificationError('Sorry, you need an active Coinbase One membership in North America (US, CA, MX) to claim this airdrop.')
+            setIsAutoVerification(false) // Reset flag
+          }
         }
         // If verification not found (404), handle based on context
         else if (response.status === 404) {
           if (isAutoVerifyFromSuccess) {
             // Show error message for auto-verification from success URL
-            setVerificationError('Sorry, you need an active Coinbase One membership to claim this airdrop.')
+            setVerificationError('Sorry, you need an active Coinbase One membership in North America (US, CA, MX) to claim this airdrop.')
             setIsAutoVerification(false); // Reset the flag
           } else {
             // Normal 404 handling - redirect to base verify mini app
@@ -361,10 +367,10 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
   }
 
   return (
-    <Layout title="Coinbase One Airdrop">
+    <Layout title="Coinbase One Airdrop (North America)">
       <Head>
         <title>Claim Your Coinbase One Airdrop</title>
-        <meta name="description" content="Claim your exclusive Coinbase One airdrop" />
+        <meta name="description" content="Claim your exclusive Coinbase One airdrop - North America only" />
         <link rel="icon" href="/favicon.ico" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </Head>
@@ -388,12 +394,12 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
               fontSize: '0.9rem',
               color: '#666',
               margin: '0 0 1.25rem 0',
-              maxWidth: '320px',
+              maxWidth: '400px',
               marginLeft: 'auto',
               marginRight: 'auto',
               lineHeight: '1.3'
             }}>
-              Limited to Coinbase One members only. Only one claim per Coinbase account.
+              Limited to Coinbase One members in North America (US, CA, MX) only. One claim per Coinbase account.
             </p>
 
             {verificationError && (
@@ -844,7 +850,7 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
               textAlign: 'center',
               lineHeight: '1.5'
             }}>
-              To claim this airdrop, you need to verify your Coinbase One membership using Base Verify.
+              To claim this airdrop, you need an active Coinbase One membership in North America (US, CA, or MX).
             </p>
 
             {/* Actions */}

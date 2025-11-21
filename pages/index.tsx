@@ -317,10 +317,13 @@ export default function Home({ initialUsers, error }: Props) {
       } else {
         const errorData = await response.json()
 
-        // Handle 412 Precondition Failed - Twitter account not verified
-        if (response.status === 412) {
-          setVerificationError('Sorry, your X account does have have a blue checkmark. You are not eligible for this airdrop.')
-          setIsAutoVerification(false) // Reset flag
+        // Handle 400 with traits not satisfied - Twitter account not verified
+        if (response.status === 400) {
+          const data = await response.json();
+          if (data.message === 'verification_traits_not_satisfied') {
+            setVerificationError('Sorry, your X account does not have a blue checkmark. You are not eligible for this airdrop.')
+            setIsAutoVerification(false) // Reset flag
+          }
         }
         // If verification not found (404), handle based on context
         else if (response.status === 404) {

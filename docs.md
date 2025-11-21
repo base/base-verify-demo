@@ -48,7 +48,7 @@ Even if a wallet has few transactions, Base Verify reveals if the user is high-v
                            │
                            ▼
        
-   200 OK ←───────┌──────────────────┐───────→ 412
+   200 OK ←───────┌──────────────────┐───────→ 400
    Verified!      │                  │         User has account
    (DONE)         │  Base Verify API │         However, traits not met 
                   │  verify.base.dev │         (DONE)
@@ -70,7 +70,7 @@ Even if a wallet has few transactions, Base Verify reveals if the user is high-v
                                ▼
                         ┌─────────────┐
                         │  Your       │  9. Check again (step 4)
-                        │  Mini App   │     → Now returns 200 ✅ or 412
+                        │  Mini App   │     → Now returns 200 ✅ or 400
                         └─────────────┘                                                    
 ```
 
@@ -122,7 +122,7 @@ The user signs this message with their wallet, proving they own the address and 
 
 - **200 OK**: Wallet has verified the provider account AND meets all trait requirements. Returns a unique token.
 - **404 Not Found**: Wallet has never verified this provider. Redirect user to Base Verify Mini App.
-- **412 Precondition Failed**: Wallet has verified the provider, but doesn't meet the trait requirements (e.g., has X account but not enough followers).
+- **400 Bad Request** (with message `"verification_traits_not_satisfied"`): Wallet has verified the provider, but doesn't meet the trait requirements (e.g., has X account but not enough followers).
 
 ---
 
@@ -242,8 +242,11 @@ async function checkVerification(walletAddress: string, signature: string, messa
     return { verified: true, token };
   } else if (response.status === 404) {
     return { verified: false, needsVerification: true };
-  } else if (response.status === 412) {
-    return { verified: false, traitsNotMet: true };
+  } else if (response.status === 400) {
+    const data = await response.json();
+    if (data.message === 'verification_traits_not_satisfied') {
+      return { verified: false, traitsNotMet: true };
+    }
   }
 }
 ```
@@ -510,15 +513,17 @@ async function checkVerification(address: string) {
       data: await response.json() 
     }
   } else if (response.status === 404) {
-    // Redirect to mini app 
     return { 
       verified: false, 
       message: 'Verification not found. Redirecting to mini app...' 
     }
-  } else if (response.status === 412) {
-    return { 
-      verified: false, 
-      message: 'User does not meet trait requirements' 
+  } else if (response.status === 400) {
+    const data = await response.json();
+    if (data.message === 'verification_traits_not_satisfied') {
+      return { 
+        verified: false, 
+        message: 'User does not meet trait requirements' 
+      }
     }
   }
   
@@ -715,13 +720,15 @@ User doesn't have this verification. Redirect to mini app.
 }
 ```
 
-**Response (412 Precondition Failed):**
+**Response (400 Bad Request):**
 
 User has provider account but doesn't meet trait requirements.
 
 ```ts
 {
-  error: "verification_traits_not_satisfied"
+  code: 9,
+  message: "verification_traits_not_satisfied",
+  details: []
 }
 ```
 
@@ -960,7 +967,7 @@ The interactive examples let you test real API calls to Base Verify:
 **Response Codes:**
 - **200 OK**: You have verified this provider and meet the trait requirements
 - **404 Not Found**: You haven't verified this provider yet (need to visit Base Verify Mini App)
-- **412 Precondition Failed**: You have the provider account but don't meet traits (e.g., not enough followers)
+- **400 Bad Request** (message: `verification_traits_not_satisfied`): You have the provider account but don't meet traits (e.g., not enough followers)
 
 **Why test this:**
 - See exactly how the API works
