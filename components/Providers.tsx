@@ -17,14 +17,19 @@ const onchainKitConfig: AppConfig = {
 } as const;
 
 console.log('NODE_ENV:', process.env.NODE_ENV)
-
 console.log('isproduction:', process.env.NODE_ENV === 'production')
+
+const baseAccountConnector = baseAccount({
+  appName: 'Base Verify Demo',
+  appLogoUrl: 'https://baseverifydemo.com/icon.png',
+  preference: { walletUrl: process.env.NEXT_PUBLIC_KEYS_URL },
+});
 
 export const config = createConfig({
   chains: [base],
   connectors: [
     // process.env.NODE_ENV === 'production' ? injected() : baseAccount(),
-    baseAccount(),
+    baseAccountConnector,
   ],
   transports: {
     [base.id]: http(),
