@@ -23,7 +23,8 @@ console.log('isproduction:', process.env.NODE_ENV === 'production')
 export const config = createConfig({
   chains: [base],
   connectors: [
-    process.env.NODE_ENV === 'production' ? injected() : baseAccount(),
+    // process.env.NODE_ENV === 'production' ? injected() : baseAccount(),
+    baseAccount(),
   ],
   transports: {
     [base.id]: http(),
