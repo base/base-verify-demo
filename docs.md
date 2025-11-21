@@ -30,68 +30,50 @@ This lets you identify quality users regardless of on-chain activity.
 ### The Complete Flow
 
 ```ts
-┌─────────────┐                                                     
-│             │  1. User connects wallet                            
-│   Your      │  ────────────────────────────►                     
-│   Mini App  │                                                     
-│             │                                                     
-└──────┬──────┘                                                     
-       │                                                            
-       │ 2. App checks: "Does this wallet have X verification?"    
-       │                                                            
-       ▼
-┌─────────────────────────────────────────────────────────┐
-│                                                         │
-│  Your Backend generates SIWE (Sign-In with Ethereum)    │
-│  • Includes wallet address                              │
-│  • Includes provider (x, coinbase, instagram, tiktok)   │
-│  • Includes traits (verified:true, followers:gt:1000)   │
-│  • Includes action (base_verify_token)                  │
-│                                                         │
-└───────────────────────┬─────────────────────────────────┘
-                        │                                            
-                        │ 3. User signs SIWE message with wallet    
-                        │                                            
-                        ▼                                            
-                ┌──────────────────┐                                
-                │                  │                                
-                │  Base Verify API │                                
-                │  verify.base.dev │                                
-                │                  │                                
-                └────────┬─────────┘                                
-                         │                                           
-        ┌────────────────┼────────────────┐                        
-        │                │                │                         
-    ✅ 200 OK        ❌ 404           ⚠️  412                       
-    Verified!       Not Found       Has account,                    
-    Return token    (No verification) but traits not met           
-        │                │                │                         
-        │                │                │                         
-        ▼                ▼                ▼                         
-                                                                    
-    If 404: User needs to verify                                   
-        │                                                           
-        │ 4. Redirect to Base Verify Mini App                      
-        │                                                           
-        ▼                                                           
-┌──────────────────────┐                                           
-│                      │                                           
-│  Base Verify         │  5. User completes OAuth with provider   
-│  Mini App            │     (X, Coinbase, Instagram, TikTok)     
-│  verify.base.dev     │                                           
-│                      │  6. Base Verify stores verification      
-└──────────┬───────────┘                                           
-           │                                                        
-           │ 7. Redirects back to your app                         
-           │    with authorization code                            
-           ▼                                                        
-┌─────────────┐                                                    
-│             │                                                    
-│   Your      │  8. [OPTIONAL] Exchange code (PKCE flow)         
-│   Mini App  │     OR simply check again                         
-│             │                                                    
-│             │  9. Verification now returns 200 ✅              
-└─────────────┘                                                    
+                   ┌─────────────┐                                                     
+                   │             │  1. User connects wallet                            
+                   │   Your      │  ────────────────────────────►                     
+                   │   Mini App  │                                                     
+                   │             │                                                     
+                   └──────┬──────┘                                                     
+                          │                                                            
+                          │ 2. App generates SIWE message (frontend)
+                          │    • Includes wallet address
+                          │    • Includes provider (x, coinbase, instagram, tiktok)
+                          │    • Includes traits (verified:true, followers:gt:1000)
+                          │    • Includes action (base_verify_token)
+                          │
+                          │ 3. User signs SIWE message with wallet
+                          │
+                          │ 4. Send signed message to Base Verify API
+                          │    (from frontend or via backend)
+                          │
+                          ▼
+       
+   200 OK ←───────┌──────────────────┐───────→ 412
+   Verified!      │                  │         User has account
+   (DONE)         │  Base Verify API │         However, traits not met 
+                  │  verify.base.dev │         (DONE)
+                  └────────┬─────────┘
+                           │
+                           │ 404 Not Found
+                           ▼
+                          
+    5. Redirect to Base Verify Mini App
+                           │
+                           ▼
+                    ┌──────────────────────┐
+                    │  Base Verify         │  6. User completes OAuth
+                    │  Mini App            │     (X, Coinbase, Instagram, TikTok)
+                    │  verify.base.dev     │  7. Base Verify stores verification
+                    └──────────┬───────────┘
+                               │
+                               │ 8. Redirects back to your app
+                               ▼
+                        ┌─────────────┐
+                        │  Your       │  9. Check again (step 4)
+                        │  Mini App   │     → Now returns 200 ✅ or 412
+                        └─────────────┘                                                    
 ```
 
 ### What is SIWE and Why Do We Use It?
