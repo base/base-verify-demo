@@ -49,6 +49,31 @@ Every API call requires a valid SIWE signature from the wallet owner. This preve
 - Third parties checking if a wallet is verified
 - Enumeration attacks
 
+**What is SIWE?**
+
+Sign-In with Ethereum lets the wallet owner prove control over their address by signing a structured message. Base Verify relies on it to ensure:
+
+1. **Privacy protection** – Only the wallet owner can ask about their verification status.
+2. **Security** – Requests come from the actual wallet, not a third party.
+3. **Trait enforcement** – The SIWE message encodes the trait requirements you set; Base Verify validates that the signed traits match what your backend expects.
+
+**Example SIWE payload**
+
+```typescript
+{
+  domain: "your-app.com",
+  address: "0x1234...",  // User's wallet
+  chainId: 8453,         // Base
+  resources: [
+    "urn:verify:provider:x",                    // Which provider
+    "urn:verify:provider:x:verified:eq:true",   // Trait requirements
+    "urn:verify:action:base_verify_token"       // What action
+  ]
+}
+```
+
+The user signs this message, proving they control the wallet and agree to check those specific traits.
+
 ### 2. OAuth Token Security
 
 - OAuth access tokens are encrypted at rest

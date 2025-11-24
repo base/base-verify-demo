@@ -20,6 +20,7 @@ interface DocsPageProps {
 const NAV_ITEMS = [
   { path: '/docs', label: 'Overview' },
   { path: '/docs/integration', label: 'Integration' },
+  { path: '/docs/core-concepts', label: 'Core Concepts' },
   { path: '/docs/api', label: 'API' },
   { path: '/docs/traits', label: 'Traits' },
   { path: '/docs/security', label: 'Security' },

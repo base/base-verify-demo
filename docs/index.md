@@ -10,30 +10,6 @@ Base Verify allows users to prove ownership of verified accounts (X, Coinbase, I
 
 ---
 
-## Get Started
-
-### Integration Guide
-Complete guide including architecture, core concepts, and step-by-step implementation.
-
-→ [Read Integration Guide](/docs/integration)
-
-### API Reference
-Endpoints, authentication, request/response schemas, and error codes.
-
-→ [Read API Reference](/docs/api)
-
-### Trait Catalog
-Available traits for all providers with interactive examples you can test.
-
-→ [Read Trait Catalog](/docs/traits)
-
-### Security & Privacy
-How Base Verify protects user data and handles OAuth.
-
-→ [Read Security Overview](/docs/security)
-
----
-
 ## Support & Feedback
 
 **Need API keys?** Contact: [rahul.patni@coinbase.com](mailto:rahul.patni@coinbase.com)

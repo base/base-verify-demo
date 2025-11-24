@@ -112,6 +112,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
 const DOC_TITLES: Record<string, string> = {
   'index': 'Base Verify Documentation',
   'integration': 'Integration Guide',
+  'core-concepts': 'Core Concepts',
   'api': 'API Reference',
   'traits': 'Trait Catalog',
   'security': 'Security & Privacy'
@@ -120,6 +121,7 @@ const DOC_TITLES: Record<string, string> = {
 const NAV_ITEMS = [
   { slug: 'index', label: 'Overview' },
   { slug: 'integration', label: 'Integration' },
+  { slug: 'core-concepts', label: 'Core Concepts' },
   { slug: 'api', label: 'API' },
   { slug: 'traits', label: 'Traits' },
   { slug: 'security', label: 'Security' },
@@ -839,6 +841,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   return {
     paths: [
       { params: { slug: 'integration' } },
+      { params: { slug: 'core-concepts' } },
       { params: { slug: 'api' } },
       { params: { slug: 'traits' } },
       { params: { slug: 'security' } },

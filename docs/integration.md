@@ -76,35 +76,6 @@ Even if a wallet has few transactions, Base Verify reveals if the user is high-v
                         └─────────────┘                                                    
 ```
 
-### What is SIWE and Why Do We Use It?
-
-**SIWE (Sign-In with Ethereum)** is a standard way for users to prove they control a wallet address by signing a message.
-
-**Why Base Verify requires SIWE:**
-
-1. **Privacy Protection**: We don't want to leak information about which wallets have verifications. By requiring a signature, only the wallet owner can check their own verification status.
-
-2. **Security**: The signature proves the request is coming from the actual wallet owner, not someone else looking up verification data.
-
-3. **Trait Requirements**: The SIWE message includes the specific traits you're checking (e.g., "X account with >1000 followers"). Base Verify validates the signature and checks if those traits match.
-
-**What goes in the SIWE message:**
-
-```typescript
-{
-  domain: "your-app.com",
-  address: "0x1234...",  // User's wallet
-  chainId: 8453,         // Base
-  resources: [
-    "urn:verify:provider:x",                    // Which provider
-    "urn:verify:provider:x:verified:eq:true",   // Trait requirements
-    "urn:verify:action:base_verify_token"       // What action
-  ]
-}
-```
-
-The user signs this message with their wallet, proving they own the address and agree to check these specific traits.
-
 ### The Contract: What Your App Does vs What Base Verify Does
 
 **Your App's Responsibilities:**
@@ -127,87 +98,11 @@ The user signs this message with their wallet, proving they own the address and 
 - **404 Not Found**: Wallet has never verified this provider. Redirect user to Base Verify Mini App.
 - **400 Bad Request** (with message `"verification_traits_not_satisfied"`): Wallet has verified the provider, but doesn't meet the trait requirements (e.g., has X account but not enough followers).
 
----
+Need the full rationale for SIWE and the exact message template? See the [Security](./security.md#siwe-signature-requirement) section for the complete explanation.
 
 ## Core Concepts
 
-### Provider
-
-An identity platform that Base Verify integrates with. Currently supports **X (Twitter)**, **Coinbase**, **Instagram**, and **TikTok**.
-
-### Verification
-
-Cryptographic proof that a wallet owns an account with a specific Provider.
-
-### Trait
-
-A specific attribute of the Provider account that can be verified.
-
-**Examples:**
-- `verified: true` - X account has blue checkmark
-- `coinbase_one_active: true` - Active Coinbase One subscription
-- `followers: gt:1000` - X account has over 1000 followers
-- `followers_count: gte:5000` - Instagram account with 5000+ followers
-- `video_count: gte:50` - TikTok account with 50+ videos
-
-### Token - Sybil Resistance
-
-A deterministic identifier tied to the Provider account, not the wallet. **This is the key anti-sybil mechanism.**
-
-**How it works:**
-
-A user verifies their X account with Wallet A:
-- Base Verify returns `Token: abc123`
-- You've never seen this token → Grant airdrop
-
-The same user tries to claim again with Wallet B:
-- Base Verify returns `Token: abc123` (same token!)
-- You've seen this token → Reject duplicate claim
-
-**Why this matters:** Without Base Verify, users could claim multiple times with different wallets. With Base Verify, one verified account = one token = one claim, regardless of how many wallets they use.
-
-**Token Properties:**
-
-- **Deterministic**: The same provider account always produces the same token
-- **Unique per provider**: A user's X token is different from their Instagram token
-- **Unique per app**: Your app receives different tokens than other apps (for privacy)
-- **Action-specific**: Tokens can vary based on the action in your SIWE message
-- **Persistent**: Tokens don't expire or rotate (unless the user deletes their verification)
-- **Trait-independent**: Token stays the same even if traits change (e.g., follower count increases)
-
-**How to Store Tokens:**
-
-```typescript
-// In your database
-{
-  token: "abc123...",           // The verification token from Base Verify
-  walletAddress: "0x1234...",   // The wallet that claimed (for your records)
-  provider: "x",                // Which provider was verified
-  claimedAt: "2024-01-15",      // When they claimed
-}
-```
-
-**Example: Preventing Double Claims**
-
-```typescript
-async function claimAirdrop(verificationToken: string, walletAddress: string) {
-  // Check if this token was already used
-  const existingClaim = await db.findClaimByToken(verificationToken);
-  
-  if (existingClaim) {
-    return { error: "This X account already claimed" };
-  }
-  
-  // Store the token
-  await db.createClaim({
-    token: verificationToken,
-    wallet: walletAddress,
-    claimedAt: new Date()
-  });
-  
-  return { success: true };
-}
-```
+See [Core Concepts](./core-concepts.md) for the full glossary, examples, and storage guidance.
 
 ---
 
