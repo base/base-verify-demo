@@ -34,32 +34,6 @@ How Base Verify protects user data and handles OAuth.
 
 ---
 
-## Quick Example
-
-Here's the simplest flow for checking X verification:
-
-```typescript
-// 1. Frontend: Generate SIWE signature
-const signature = await generateSignature({
-  provider: 'x',
-  traits: { 'verified': 'true' },
-  action: 'base_verify_token'
-});
-
-// 2. Send to your backend
-const result = await fetch('/api/check-verification', {
-  method: 'POST',
-  body: JSON.stringify({ signature, message })
-});
-
-// 3. Backend calls Base Verify
-// 4. If 404 → redirect to Base Verify Mini App
-// 5. User verifies → returns to your app
-// 6. Check again → 200 with token
-```
-
----
-
 ## Support & Feedback
 
 **Need API keys?** Contact: [rahul.patni@coinbase.com](mailto:rahul.patni@coinbase.com)

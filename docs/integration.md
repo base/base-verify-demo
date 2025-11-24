@@ -28,7 +28,7 @@ Even if a wallet has few transactions, Base Verify reveals if the user is high-v
                     │             │  1. User connects wallet                            
                     │   Your      │                       
                     │   Mini App  │                                                     
-                    │             │                                                     
+                    │  (Frontend) │                                                     
                     └──────┬──────┘                                                     
                            │                                                            
                            │ 2. App generates SIWE message (frontend)
@@ -39,7 +39,14 @@ Even if a wallet has few transactions, Base Verify reveals if the user is high-v
                            │
                            │ 3. User signs SIWE message with wallet
                            │
-                           │ 4. Send to YOUR backend → Backend calls Base Verify API
+                           │ 4. Send signature + message to YOUR backend
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │  Mini App    │  • Validates trait requirements
+                    │  Backend     │  • Verifies signature with Base Verify API
+                    │  (Your API)  │
+                    └──────┬───────┘
                            │
                            ▼
        
@@ -333,10 +340,28 @@ async function checkVerification(address: string) {
 
 ```ts
 // pages/api/check-verification.ts
+import { validateTraits } from '../../lib/trait-validator';
+
 export default async function handler(req, res) {
   const { signature, message, address } = req.body;
 
-  // Call Base Verify with YOUR secret key
+  // CRITICAL: Validate trait requirements match what YOUR backend expects
+  // This prevents users from modifying trait requirements on the frontend
+  const expectedTraits = {
+    'verified': 'true',
+    'followers': 'gte:100'
+  };
+
+  const validation = validateTraits(message, 'x', expectedTraits);
+  
+  if (!validation.valid) {
+    return res.status(400).json({
+      error: 'Invalid trait requirements in message',
+      details: validation.error
+    });
+  }
+
+  // Now safe to verify signature with Base Verify API
   const response = await fetch('https://verify.base.dev/v1/base_verify_token', {
     method: 'POST',
     headers: {
