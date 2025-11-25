@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("PRISMA_DATABASE_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL") // uses a direct connection
+}
+
+model VerifiedUser {
+  id          String @id @default(cuid())
+  address     String @unique
+  baseVerifyToken String? @unique @map("base_verify_token")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("verified_users")
+}
+
+model CoinbaseVerifiedUser {
+  id          String @id @default(cuid())
+  address     String @unique
+  baseVerifyToken String? @unique @map("base_verify_token")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("coinbase_verified_users")
+}
