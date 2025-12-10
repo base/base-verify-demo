@@ -254,7 +254,7 @@ export default function Home({ initialUsers, error }: Props) {
 
       // Check for cached signature first
       const cachedSignature = verifySignatureCache.get();
-      if (cachedSignature && verifySignatureCache.isValidForAddress(address, 'base_verify_token', 'x')) {
+      if (cachedSignature && verifySignatureCache.isValidForAddress(address, 'claim_demo_x_airdrop', 'x')) {
         console.log('Using cached signature');
         signature = cachedSignature;
       } else {
@@ -262,7 +262,7 @@ export default function Home({ initialUsers, error }: Props) {
         console.log('sdk.isInMiniApp()', sdk.isInMiniApp())
         // Generate SIWE signature for base_verify_token
         signature = await generateSignature({
-          action: 'base_verify_token',
+          action: 'claim_demo_x_airdrop',
           provider: 'x',
           traits: { 'verified': 'true' },
           signMessageFunction: async (message: string) => {

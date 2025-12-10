@@ -61,7 +61,7 @@ export const verifySignatureCache = {
   },
 
   // Helper method to check if cached signature matches current address, action, and provider
-  isValidForAddress(address: string, action: string = 'base_verify_token', provider?: string): boolean {
+  isValidForAddress(address: string, action: string, provider?: string): boolean {
     const cached = this.get();
     if (!cached) return false;
     

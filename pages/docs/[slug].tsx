@@ -27,6 +27,7 @@ type ExampleScenario = {
   name: string
   description: string
   provider: string
+  action: string
   traits: Record<string, string>
 }
 
@@ -36,6 +37,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     name: 'X Followers > 100',
     description: 'Verify X account with more than 100 followers',
     provider: 'x',
+    action: 'claim_demo_x_airdrop',
     traits: { 'followers': 'gt:100' }
   },
   {
@@ -43,6 +45,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     name: 'Coinbase One - Europe',
     description: 'Active Coinbase One subscriber in a European country',
     provider: 'coinbase',
+    action: 'claim_demo_coinbase_airdrop',
     traits: { 
       'coinbase_one_active': 'true',
       'country': 'in:AT,BE,BG,HR,CY,CZ,DK,EE,FI,FR,DE,GR,HU,IE,IT,LV,LT,LU,MT,NL,PL,PT,RO,SK,SI,ES,SE'
@@ -53,6 +56,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     name: 'Coinbase One - North America',
     description: 'Active Coinbase One subscriber in North America (US, CA, MX)',
     provider: 'coinbase',
+    action: 'claim_demo_coinbase_airdrop',
     traits: { 
       'coinbase_one_active': 'true',
       'country': 'in:US,CA,MX'
@@ -63,6 +67,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     name: 'Coinbase One - Billed & Active',
     description: 'Coinbase One subscriber who has been billed and is currently active',
     provider: 'coinbase',
+    action: 'claim_demo_coinbase_airdrop',
     traits: { 
       'coinbase_one_active': 'true',
       'coinbase_one_billed': 'true'
@@ -73,6 +78,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     name: 'Instagram Followers > 100',
     description: 'Verify Instagram account with more than 100 followers',
     provider: 'instagram',
+    action: 'claim_demo_instagram_airdrop',
     traits: { 'followers_count': 'gt:100' }
   },
   {
@@ -80,6 +86,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     name: 'TikTok Followers > 1000',
     description: 'Verify TikTok account with more than 1000 followers',
     provider: 'tiktok',
+    action: 'claim_demo_tiktok_airdrop',
     traits: { 'follower_count': 'gt:1000' }
   },
   {
@@ -87,6 +94,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     name: 'TikTok Likes > 10,000',
     description: 'Verify TikTok account with more than 10,000 total likes',
     provider: 'tiktok',
+    action: 'claim_demo_tiktok_airdrop',
     traits: { 'likes_count': 'gt:10000' }
   },
   {
@@ -94,6 +102,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     name: 'TikTok Videos > 50',
     description: 'Verify TikTok account with more than 50 videos posted',
     provider: 'tiktok',
+    action: 'claim_demo_tiktok_airdrop',
     traits: { 'video_count': 'gt:50' }
   },
   {
@@ -101,6 +110,7 @@ const EXAMPLE_SCENARIOS: ExampleScenario[] = [
     name: 'TikTok Active Creator',
     description: 'TikTok creator with 5K+ followers, 100K+ likes, and 100+ videos',
     provider: 'tiktok',
+    action: 'claim_demo_tiktok_airdrop',
     traits: { 
       'follower_count': 'gte:5000',
       'likes_count': 'gte:100000',
@@ -153,7 +163,7 @@ function ExampleCard({ scenario }: { scenario: ExampleScenario }) {
 
     try {
       const signature = await generateSignature({
-        action: 'base_verify_token',
+        action: scenario.action,
         provider: scenario.provider,
         traits: scenario.traits,
         signMessageFunction: async (message: string) => {

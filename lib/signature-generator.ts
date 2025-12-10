@@ -112,7 +112,7 @@ export interface GeneratedSignature {
 export async function generateSignature(options: GenerateSignatureOptions): Promise<GeneratedSignature> {
   const {
     privateKey,
-    action = 'create_verification_url',
+    action,
     provider = 'x',
     traits = {},
     verificationID,

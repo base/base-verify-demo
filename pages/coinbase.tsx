@@ -255,7 +255,7 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
 
       // Check for cached signature first
       const cachedSignature = verifySignatureCache.get();
-      if (cachedSignature && verifySignatureCache.isValidForAddress(address, 'base_verify_token', 'coinbase')) {
+      if (cachedSignature && verifySignatureCache.isValidForAddress(address, 'claim_demo_coinbase_airdrop', 'coinbase')) {
         console.log('Using cached signature');
         signature = cachedSignature;
       } else {
@@ -263,7 +263,7 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
         console.log('sdk.isInMiniApp()', sdk.isInMiniApp())
         // Generate SIWE signature for base_verify_token
         signature = await generateSignature({
-          action: 'base_verify_token',
+          action: 'claim_demo_coinbase_airdrop',
           provider: 'coinbase',
           traits: { 
             'coinbase_one_active': 'true',
