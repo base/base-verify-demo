@@ -498,7 +498,7 @@ User returns with `?success=true`. Check again (step 3) → now returns 200 with
 ## Error Handling
 
 **404** → User hasn't verified. Redirect to Base Verify Mini App.  
-**400** (with `verification_traits_not_satisfied`) → User has account but doesn't meet traits. Don't redirect.  
+**400** (with `verification_traits_not_satisfied`) → User has account but doesn't meet requirements. Don't redirect.  
 **200** → Success! Store the token.
 
 ---
@@ -1269,6 +1269,5 @@ Handle each response code appropriately:
 - [Integration Guide](/docs/integration) - Full implementation guide
 - [API Reference](/docs/api) - Endpoint documentation
 - [Trait Catalog](/docs/traits) - Available traits
-
 
 
