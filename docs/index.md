@@ -10,6 +10,12 @@ Base Verify allows users to prove ownership of verified accounts (X, Coinbase, I
 
 ---
 
+## Resources
+
+**[llms.txt](/llms.txt)** - Full documentation bundled into a single file for LLM ingestion.
+
+---
+
 ## Support & Feedback
 
 **Need API keys?** Contact: [rahul.patni@coinbase.com](mailto:rahul.patni@coinbase.com)
