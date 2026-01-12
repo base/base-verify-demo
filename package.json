@@ -21,7 +21,7 @@
     "@farcaster/miniapp-sdk": "0.1.9",
     "@prisma/client": "^5.20.0",
     "ethers": "6.12.1",
-    "next": "15.0.5",
+    "next": "15.0.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
