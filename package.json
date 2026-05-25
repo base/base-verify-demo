@@ -1,7 +1,7 @@
 {
   "name": "verify-demo-mini-app",
   "version": "1.0.0",
-  "description": "Simple Next.js app with Postgres for verified X users",
+  "description": "Next.js demo app with Postgres for Base Verify social verification",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3003",
