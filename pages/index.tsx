@@ -222,8 +222,16 @@ export default function Home({ initialUsers, error }: Props) {
     sessionStorage.setItem('pkce_code_verifier', codeVerifier);
     sessionStorage.setItem('pkce_state', state);
 
+    const isInMiniApp = await sdk.isInMiniApp();
+
+    // In a mini-app the return must go back through the cbwallet deep link; in a
+    // plain browser (e.g. local dev) we return directly to this app's URL.
+    const redirectUri = isInMiniApp
+      ? `cbwallet://miniapp?url=${config.appUrl}?success=true`
+      : `${config.appUrl}?success=true`;
+
     const params = new URLSearchParams({
-      redirect_uri: `cbwallet://miniapp?url=${config.appUrl}?success=true`,
+      redirect_uri: redirectUri,
       providers: 'x',
       state,
       code_challenge: codeChallenge,
@@ -231,8 +239,14 @@ export default function Home({ initialUsers, error }: Props) {
     });
 
     const baseVerifyMiniAppUrl = `${config.baseVerifyMiniAppUrl}?${params.toString()}`;
-    const url = `cbwallet://miniapp?url=${encodeURIComponent(baseVerifyMiniAppUrl)}`;
-    openUrl(url);
+
+    if (isInMiniApp) {
+      // Open the Base Verify mini-app via the Coinbase Wallet deep link.
+      openUrl(`cbwallet://miniapp?url=${encodeURIComponent(baseVerifyMiniAppUrl)}`);
+    } else {
+      // Navigate the browser straight to the (local) Base Verify web app.
+      window.location.href = baseVerifyMiniAppUrl;
+    }
   }
 
   const redirectToVerifyMiniApp = async () => {
