@@ -21,11 +21,11 @@ function buildSIWEMessage(options: SIWEOptions): { message: string; nonce: strin
     address,
     uri = config.appUrl,
     chainId = 8453, // Base chain
-    statement = 'Claim airdrop with X Blue Checkmark',
     action,
     provider,
     traits = {},
     verificationID,
+    statement = 'Claim airdrop',
   } = options;
 
   const nonce = generateNonce();
