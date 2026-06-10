@@ -32,12 +32,6 @@ export const config = createConfig({
   ssr: true,
 });
 
-const miniKitConfig = {
-  enabled: true,
-  autoConnect: true,
-  notificationProxyUrl: undefined,
-} as const;
-
 type ProvidersProps = PropsWithChildren;
 
 export function Providers({ children }: ProvidersProps) {
@@ -47,7 +41,6 @@ export function Providers({ children }: ProvidersProps) {
         apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
         chain={base}
         config={onchainKitConfig}
-        miniKit={miniKitConfig}
       >
         {children}
       </OnchainKitProvider>

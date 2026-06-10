@@ -3,16 +3,12 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useAccount, useSignMessage } from 'wagmi'
 import { useState, useEffect } from 'react'
-import { sdk } from '@farcaster/miniapp-sdk'
 import prisma from '../lib/prisma'
 import { Layout } from '../components/Layout'
 import { generateSignature } from '../lib/signature-generator'
 import { verifySignatureCache } from '../lib/signatureCache'
 import { config } from '../lib/config'
-import { useMiniKit } from "@coinbase/onchainkit/minikit"
-import { useMiniAppContext } from '../components/MiniAppGuard'
 import { useToast } from '../components/ToastProvider'
-import { useOpenUrl } from '@coinbase/onchainkit/minikit';
 
 type CoinbaseVerifiedUser = {
   id: string
@@ -34,26 +30,11 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
   const [isVerifying, setIsVerifying] = useState(false)
   const [verificationResult, setVerificationResult] = useState<any>(null)
   const [verificationError, setVerificationError] = useState<string>('')
-  const miniAppContext = useMiniAppContext()
-  const { isInMiniApp } = miniAppContext
   const [isAutoVerification, setIsAutoVerification] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string>('')
   const [showVerifyModal, setShowVerifyModal] = useState(false)
-  const openUrl = useOpenUrl();
-  const { setFrameReady, isFrameReady } = useMiniKit();
   const { showToast } = useToast();
-
-  // Log MiniApp context
-  useEffect(() => {
-    console.log('MiniApp Context:', miniAppContext);
-  }, [miniAppContext]);
-
-  useEffect(() => {
-    if (!isFrameReady) {
-      setFrameReady();
-    }
-  }, [setFrameReady, isFrameReady]);
 
   // Clear cache when address changes or if cached signature is for wrong provider
   useEffect(() => {
@@ -223,17 +204,15 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
     sessionStorage.setItem('pkce_state', state);
 
     const params = new URLSearchParams({
-      redirect_uri: `cbwallet://miniapp?url=${config.appUrl}/coinbase?success=true`,
+      redirect_uri: `${config.appUrl}/coinbase?success=true`,
       providers: 'coinbase',
       state,
       code_challenge: codeChallenge,
       code_challenge_method: 'S256'
     });
 
-    const baseVerifyMiniAppUrl = `${config.baseVerifyMiniAppUrl}?${params.toString()}`;
-
-    const url = `cbwallet://miniapp?url=${encodeURIComponent(baseVerifyMiniAppUrl)}`;
-    openUrl(url);
+    const baseVerifyUrl = `${config.baseVerifyMiniAppUrl}?${params.toString()}`;
+    window.location.href = baseVerifyUrl;
   }
 
   const redirectToVerifyMiniApp = async () => {
@@ -260,7 +239,6 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
         signature = cachedSignature;
       } else {
         console.log('Generating new signature');
-        console.log('sdk.isInMiniApp()', sdk.isInMiniApp())
         // Generate SIWE signature for base_verify_token
         signature = await generateSignature({
           action: 'claim_demo_coinbase_airdrop',

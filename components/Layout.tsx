@@ -1,6 +1,5 @@
 import { useRouter } from "next/router";
 import { WalletComponent } from "./Wallet";
-import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 import { useToast } from "./ToastProvider";
 import { verifySignatureCache } from "../lib/signatureCache";
 import { useState } from "react";
@@ -12,7 +11,6 @@ interface LayoutProps {
 
 export function Layout({ children, title = "Base Verify Demo" }: LayoutProps) {
   const router = useRouter();
-  const openUrl = useOpenUrl();
   const { showToast } = useToast();
 
   return (
@@ -105,7 +103,7 @@ export function Layout({ children, title = "Base Verify Demo" }: LayoutProps) {
           }}
         >
           <a
-            href="cbwallet://miniapp?url=https://verify.base.dev"
+            href="https://verify.base.dev"
             target="_blank"
             rel="noopener noreferrer"
             style={{
