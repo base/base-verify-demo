@@ -3,17 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: [
     '@coinbase/onchainkit',
-    '@farcaster/miniapp-sdk',
-    '@farcaster/miniapp-wagmi-connector'
   ],
-  async rewrites() {
-    return [
-      {
-        source: '/.well-known/farcaster.json',
-        destination: '/api/.well-known/farcaster.json',
-      },
-    ];
-  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
