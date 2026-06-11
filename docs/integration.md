@@ -1,12 +1,12 @@
 # Integration Guide
 
-This guide covers everything you need to integrate Base Verify into your mini app.
+This guide covers everything you need to integrate Base Verify into your web app.
 
 ---
 
 ## What is Base Verify?
 
-Base Verify is for mini-app builders to allow their users to prove they have verified accounts (X Blue, Coinbase One) without sharing credentials.
+Base Verify is for web app builders to allow their users to prove they have verified accounts (X Blue, Coinbase One) without sharing credentials.
 
 **Why This Matters:**
 
@@ -141,7 +141,7 @@ export const config = {
   appUrl: 'https://your-app.com',
   baseVerifySecretKey: process.env.BASE_VERIFY_SECRET_KEY,  // Backend only!
   baseVerifyApiUrl: 'https://verify.base.dev/v1',
-  baseVerifyMiniAppUrl: 'https://verify.base.dev',
+  baseVerifyWebAppUrl: 'https://verify.base.dev',
 }
 ```
 
@@ -290,18 +290,14 @@ export default async function handler(req, res) {
 If you get 404, redirect user to complete OAuth:
 
 ```ts
-function redirectToVerifyMiniApp(provider: string) {
-  // Build mini app URL with your app as the redirect
+function redirectToVerifyWebApp(provider: string) {
   const params = new URLSearchParams({
     redirect_uri: config.appUrl,
     providers: provider,
   })
   
-  const miniAppUrl = `${config.baseVerifyMiniAppUrl}?${params.toString()}`
-  
-  // Open in Base App
-  const deepLink = `cbwallet://miniapp?url=${encodeURIComponent(miniAppUrl)}`
-  window.open(deepLink, '_blank')
+  const webAppUrl = `${config.baseVerifyWebAppUrl}?${params.toString()}`
+  window.location.href = webAppUrl
 }
 ```
 
@@ -311,7 +307,7 @@ User returns with `?success=true`. Check again (step 3) → now returns 200 with
 
 ## Error Handling
 
-**404** → User hasn't verified. Redirect to Base Verify Mini App.  
+**404** → User hasn't verified. Redirect to Base Verify web app.  
 **400** (with `verification_traits_not_satisfied`) → User has account but doesn't meet traits. Don't redirect.  
 **200** → Success! Store the token.
 
