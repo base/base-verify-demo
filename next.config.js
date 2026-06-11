@@ -3,8 +3,6 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: [
     '@coinbase/onchainkit',
-    '@farcaster/miniapp-sdk',
-    '@farcaster/miniapp-wagmi-connector',
   ],
   webpack: (config, { isServer }) => {
     if (!isServer) {
