@@ -19,7 +19,7 @@ export function WalletComponent() {
     const preferredConnector =
       connectors.find(c => {
         const name = c.name.toLowerCase()
-        return name.includes('base account') || name.includes('farcaster')
+        return name.includes('base account')
       }) || connectors[0]
 
     setSelectedConnectorId(preferredConnector?.id)
