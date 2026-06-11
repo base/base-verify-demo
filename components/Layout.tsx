@@ -162,7 +162,7 @@ export function Layout({ children, title = "Base Verify Demo" }: LayoutProps) {
           <span style={{ color: "#d1d5db", fontSize: "0.8rem" }}>•</span>
           <button
             onClick={() => {
-              if (window.location.href.includes("coinbase")) {
+              if (router.asPath.includes("coinbase")) {
                 router.push("/");
               } else {
                 router.push("/coinbase");
