@@ -187,7 +187,7 @@ This guide covers everything you need to integrate Base Verify into your mini ap
 
 ## What is Base Verify?
 
-Base Verify is for mini-app builders to allow their users to prove they have verified accounts (X Blue, Coinbase One) without sharing credentials.
+Base Verify is for web app builders to allow their users to prove they have verified accounts (X Blue, Coinbase One) without sharing credentials.
 
 **Why This Matters:**
 
@@ -322,7 +322,7 @@ export const config = {
   appUrl: 'https://your-app.com',
   baseVerifySecretKey: process.env.BASE_VERIFY_SECRET_KEY,  // Backend only!
   baseVerifyApiUrl: 'https://verify.base.dev/v1',
-  baseVerifyMiniAppUrl: 'https://verify.base.dev',
+  baseVerifyWebAppUrl: 'https://verify.base.dev',
 }
 ```
 
@@ -471,18 +471,14 @@ export default async function handler(req, res) {
 If you get 404, redirect user to complete OAuth:
 
 ```ts
-function redirectToVerifyMiniApp(provider: string) {
-  // Build mini app URL with your app as the redirect
+function redirectToVerifyWebApp(provider: string) {
   const params = new URLSearchParams({
     redirect_uri: config.appUrl,
     providers: provider,
   })
-  
-  const miniAppUrl = `${config.baseVerifyMiniAppUrl}?${params.toString()}`
-  
-  // Open in Base App
-  const deepLink = `cbwallet://miniapp?url=${encodeURIComponent(miniAppUrl)}`
-  window.open(deepLink, '_blank')
+
+  const webAppUrl = `${config.baseVerifyWebAppUrl}?${params.toString()}`
+  window.location.href = webAppUrl
 }
 ```
 
@@ -1022,10 +1018,8 @@ const params = new URLSearchParams({
   providers: 'x'
 });
 
-const miniAppUrl = `https://verify.base.dev?${params}`;
-const deepLink = `cbwallet://miniapp?url=${encodeURIComponent(miniAppUrl)}`;
-
-window.open(deepLink, '_blank');
+const webAppUrl = `https://verify.base.dev?${params}`;
+window.location.href = webAppUrl;
 ```
 
 After verification, user returns to your `redirect_uri` with `?success=true`.
