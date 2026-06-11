@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { useConnect } from 'wagmi'
 import { useDisconnect } from 'wagmi'
-import { config } from './Providers'
+import { config } from '../lib/wagmi'
 
 
 export function WalletComponent() {
