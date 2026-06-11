@@ -3,8 +3,8 @@
 import { AppConfig, OnchainKitProvider } from "@coinbase/onchainkit";
 import { base } from "wagmi/chains";
 import { PropsWithChildren } from "react";
-import { createConfig, http, WagmiProvider } from "wagmi";
-import { baseAccount } from 'wagmi/connectors';
+import { WagmiProvider } from "wagmi";
+import { config } from "../lib/wagmi";
 
 const onchainKitConfig: AppConfig = {
   appearance: {
@@ -16,25 +16,7 @@ const onchainKitConfig: AppConfig = {
   },
 } as const;
 
-const baseAccountConnector = baseAccount({
-  appName: 'Base Verify Demo',
-  appLogoUrl: 'https://baseverifydemo.com/icon.png',
-});
-
-export const config = createConfig({
-  chains: [base],
-  connectors: [
-    baseAccountConnector,
-  ],
-  transports: {
-    [base.id]: http(),
-  },
-  ssr: true,
-});
-
-type ProvidersProps = PropsWithChildren;
-
-export function Providers({ children }: ProvidersProps) {
+export function Providers({ children }: PropsWithChildren) {
   return (
     <WagmiProvider config={config}>
       <OnchainKitProvider
