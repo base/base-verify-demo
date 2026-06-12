@@ -262,21 +262,19 @@ To improve UX, signatures are cached in localStorage for 5 minutes:
 - Automatically cleared on address change or error
 - Validates address and action match before reuse
 
-### Base Verify Mini App Redirect
+### Base Verify Web App Redirect
 
-When a user hasn't verified yet (404 response), redirect them to the Base Verify Mini App:
+When a user hasn't verified yet (404 response), redirect them to the Base Verify web app:
 
 ```typescript
-function redirectToVerifyMiniApp(provider: string) {
+function redirectToVerifyWebApp(provider: string) {
   const params = new URLSearchParams({
     redirect_uri: 'https://your-app.com',
     providers: provider, // 'x', 'coinbase', 'instagram', or 'tiktok'
   });
   
-  const miniAppUrl = `https://verify.base.dev?${params}`;
-  const deepLink = `cbwallet://miniapp?url=${encodeURIComponent(miniAppUrl)}`;
-  
-  window.open(deepLink, '_blank');
+  const webAppUrl = `https://verify.base.dev?${params}`;
+  window.location.href = webAppUrl;
 }
 ```
 

@@ -195,7 +195,7 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
       .replace(/=/g, '');
   };
 
-  const executeRedirectToVerifyMiniApp = async () => {
+  const executeRedirectToVerifyWebApp = async () => {
     const codeVerifier = generateCodeVerifier();
     const codeChallenge = await generateCodeChallenge(codeVerifier);
     const state = `verify-${Date.now()}`;
@@ -211,11 +211,11 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
       code_challenge_method: 'S256'
     });
 
-    const baseVerifyUrl = `${config.baseVerifyMiniAppUrl}?${params.toString()}`;
+    const baseVerifyUrl = `${config.baseVerifyWebAppUrl}?${params.toString()}`;
     window.location.href = baseVerifyUrl;
   }
 
-  const redirectToVerifyMiniApp = async () => {
+  const redirectToVerifyWebApp = async () => {
     setShowVerifyModal(true);
   }
 
@@ -321,7 +321,7 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
             // Normal 404 handling - redirect to base verify mini app
             console.log('Verification not found, redirecting to base verify mini app...')
             setIsAutoVerification(false) // Reset flag
-            await redirectToVerifyMiniApp()
+            await redirectToVerifyWebApp()
           }
         } else {
           // Clear cache on verification failure (might be invalid signature)
@@ -844,7 +844,7 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
               <button
                 onClick={async () => {
                   setShowVerifyModal(false);
-                  await executeRedirectToVerifyMiniApp();
+                  await executeRedirectToVerifyWebApp();
                 }}
                 style={{
                   width: '100%',

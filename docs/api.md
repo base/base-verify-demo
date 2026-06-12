@@ -157,10 +157,8 @@ const params = new URLSearchParams({
   providers: 'x'
 });
 
-const miniAppUrl = `https://verify.base.dev?${params}`;
-const deepLink = `cbwallet://miniapp?url=${encodeURIComponent(miniAppUrl)}`;
-
-window.open(deepLink, '_blank');
+const webAppUrl = `https://verify.base.dev?${params}`;
+window.location.href = webAppUrl;
 ```
 
 After verification, user returns to your `redirect_uri` with `?success=true`.
