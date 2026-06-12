@@ -26,7 +26,7 @@ export interface ValidationResult {
  */
 function parseTraitsFromMessage(message: string): { provider: string; traits: TraitRequirement } | null {
   // Extract resources section from SIWE message
-  const resourcesMatch = message.match(/Resources:\s*\n((?:- .+\n)+)/);
+  const resourcesMatch = message.match(/Resources:\s*\n((?:- .+(?:\n|$))+)/);
   if (!resourcesMatch) {
     return null;
   }
