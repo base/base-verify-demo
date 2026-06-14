@@ -8,7 +8,7 @@ import { verifySignatureCache } from '../lib/signatureCache'
 import { config } from '../lib/config'
 import { useToast } from '../components/ToastProvider'
 
-// Minimal ABI — only the functions this page uses.
+// Minimal ABI — only the functions and errors this page uses.
 const AIRDROP_ABI = [
   {
     name: 'claim',
@@ -22,6 +22,8 @@ const AIRDROP_ABI = [
     outputs: [],
     stateMutability: 'nonpayable',
   },
+  { name: 'AlreadyClaimed', type: 'error', inputs: [] },
+  { name: 'InvalidVerification', type: 'error', inputs: [] },
 ] as const
 
 type OnchainToken = {
