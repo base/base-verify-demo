@@ -1,5 +1,5 @@
 import { createConfig, http } from "wagmi";
-import { base } from "wagmi/chains";
+import { base, baseSepolia } from "wagmi/chains";
 import { baseAccount } from "wagmi/connectors";
 
 const baseAccountConnector = baseAccount({
@@ -8,10 +8,11 @@ const baseAccountConnector = baseAccount({
 });
 
 export const config = createConfig({
-  chains: [base],
+  chains: [base, baseSepolia],
   connectors: [baseAccountConnector],
   transports: {
     [base.id]: http(),
+    [baseSepolia.id]: http(),
   },
   ssr: true,
 });
