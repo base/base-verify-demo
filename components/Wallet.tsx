@@ -5,12 +5,13 @@ import { useAccount } from 'wagmi'
 import { useConnect } from 'wagmi'
 import { useDisconnect } from 'wagmi'
 import { config } from '../lib/wagmi'
-
+import { useToast } from './ToastProvider'
 
 export function WalletComponent() {
   const { isConnected, address } = useAccount()
   const { connect, connectors } = useConnect({ config })
   const { disconnect } = useDisconnect()
+  const { showToast } = useToast()
   const [selectedConnectorId, setSelectedConnectorId] = useState<string>()
 
   useEffect(() => {
@@ -31,8 +32,18 @@ export function WalletComponent() {
   )
 
   if (isConnected && address) {
+    const copyAddress = async (event: React.MouseEvent) => {
+      event.stopPropagation()
+      try {
+        await navigator.clipboard.writeText(address)
+        showToast('Address copied', 'success')
+      } catch {
+        showToast('Could not copy address', 'error')
+      }
+    }
+
     return (
-      <div>
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
         <div
           onClick={() => disconnect()}
           style={{
@@ -44,11 +55,27 @@ export function WalletComponent() {
             fontSize: '0.875rem',
             fontWeight: '500',
             fontFamily: 'monospace',
-            cursor: 'pointer'
+            cursor: 'pointer',
           }}
         >
           {address.slice(0, 6)}...{address.slice(-4)}
         </div>
+        <button
+          type="button"
+          onClick={copyAddress}
+          style={{
+            padding: '0.5rem 0.75rem',
+            border: '1px solid #d1d5db',
+            borderRadius: '8px',
+            background: 'white',
+            color: '#374151',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            cursor: 'pointer',
+          }}
+        >
+          Copy
+        </button>
       </div>
     )
   }
