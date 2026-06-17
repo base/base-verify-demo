@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { config } from "../../../lib/config";
 import prisma from "../../../lib/prisma";
 import { validateTraits } from "../../../lib/trait-validator";
+import { mapVerifyApiError } from "../../../lib/errors";
 
 export default async function handler(
   req: NextApiRequest,
@@ -80,7 +81,8 @@ export default async function handler(
           if (errorData.message === "verification_traits_not_satisfied") {
             return res.status(412).json({
               error:
-                "Coinbase account does not satisfy verification requirements.",
+                "Sorry, you need an active Coinbase One membership in North America (US, CA, MX) to claim this airdrop.",
+              message: errorData.message,
             });
           }
         } catch (parseError) {
@@ -88,8 +90,14 @@ export default async function handler(
         }
       }
 
+      let body: unknown = {};
+      try {
+        body = JSON.parse(responseBody);
+      } catch {
+        body = { error: responseBody };
+      }
       return res.status(verifyResponse.status).json({
-        error: "Failed to verify signature with base-verify-api",
+        error: mapVerifyApiError(verifyResponse.status, body),
       });
     }
 

@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { config } from "../../../lib/config";
+import { mapVerifyApiError } from "../../../lib/errors";
 
 export default async function handler(
   req: NextApiRequest,
@@ -46,10 +47,17 @@ export default async function handler(
       console.error(
         "Onchain verify API error:",
         verifyResponse.status,
-        verifyResponse.statusText
+        verifyResponse.statusText,
+        responseBody
       );
+      let body: unknown = {};
+      try {
+        body = JSON.parse(responseBody);
+      } catch {
+        body = { error: responseBody };
+      }
       return res.status(verifyResponse.status).json({
-        error: "Failed to get onchain verify token",
+        error: mapVerifyApiError(verifyResponse.status, body),
       });
     }
 

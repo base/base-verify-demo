@@ -1,7 +1,7 @@
 "use client";
 
 import { AppConfig, OnchainKitProvider } from "@coinbase/onchainkit";
-import { base } from "wagmi/chains";
+import { baseSepolia } from "wagmi/chains";
 import { PropsWithChildren } from "react";
 import { WagmiProvider } from "wagmi";
 import { config } from "../lib/wagmi";
@@ -21,7 +21,7 @@ export function Providers({ children }: PropsWithChildren) {
     <WagmiProvider config={config}>
       <OnchainKitProvider
         apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
-        chain={base}
+        chain={baseSepolia}
         config={onchainKitConfig}
       >
         {children}

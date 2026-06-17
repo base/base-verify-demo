@@ -18,4 +18,7 @@ export const config = {
   // Onchain claim contract (SybilResistantAirdrop on Base Sepolia — see PRIV-1964 for mainnet migration)
   claimContractAddress: process.env.NEXT_PUBLIC_CLAIM_CONTRACT_ADDRESS || '0x948613155cA773b07E3Bee711cb8b261443fe674',
   claimChainId: parseInt(process.env.NEXT_PUBLIC_CLAIM_CHAIN_ID || '84532', 10),
+
+  // Show reset-claim UI on /onchain
+  enableDemoReset: process.env.NEXT_PUBLIC_ENABLE_DEMO_RESET === 'true',
 }

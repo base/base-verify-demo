@@ -313,7 +313,7 @@ export default function Home({ initialUsers, error }: Props) {
         else if (response.status === 404) {
           if (isAutoVerifyFromSuccess) {
             // Show error message for auto-verification from success URL
-            setVerificationError('Sorry, your X account does have have a blue checkmark. You are not eligible for this airdrop.')
+            setVerificationError('Sorry, your X account does not have a blue checkmark. You are not eligible for this airdrop.')
             setIsAutoVerification(false); // Reset the flag
           } else {
             // Normal 404 handling - redirect to base verify mini app

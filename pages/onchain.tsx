@@ -9,6 +9,11 @@ import { generateSignature } from '../lib/signature-generator'
 import { verifySignatureCache } from '../lib/signatureCache'
 import { config } from '../lib/config'
 import { useToast } from '../components/ToastProvider'
+import {
+  isUserRejectedWalletError,
+  mapContractRevertError,
+  mapVerifyApiError,
+} from '../lib/errors'
 
 // Minimal ABI — only the functions and errors this page uses.
 const AIRDROP_ABI = [
@@ -32,7 +37,18 @@ const AIRDROP_ABI = [
     stateMutability: 'view',
   },
   { name: 'AlreadyClaimed', type: 'error', inputs: [] },
+  { name: 'ClaimNotFound', type: 'error', inputs: [] },
   { name: 'InvalidVerification', type: 'error', inputs: [] },
+  { name: 'TokenExpired', type: 'error', inputs: [] },
+  { name: 'InvalidSignature', type: 'error', inputs: [] },
+  { name: 'UntrustedSigner', type: 'error', inputs: [] },
+  {
+    name: 'resetClaim',
+    type: 'function',
+    inputs: [{ name: 'uniqueHash', type: 'bytes32' }],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
 ] as const
 
 type OnchainToken = {
@@ -50,20 +66,6 @@ const ACTION = 'my_app_airdrop_2026'
 // Read-only client for the dedup pre-check.
 const publicClient = createPublicClient({ chain: baseSepolia, transport: http() })
 
-function parseTxError(error: Error): string {
-  // Walk the full error + cause chain as strings — viem nests custom error names in cause.
-  let str = ''
-  let e: unknown = error
-  while (e instanceof Error) {
-    str += e.message + ' '
-    e = (e as any).cause
-  }
-  if (str.includes('AlreadyClaimed')) return 'This identity has already claimed. Each Coinbase account can only claim once.'
-  if (str.includes('InvalidVerification')) return 'Token expired or invalid. Please try again.'
-  if (str.includes('User rejected') || str.includes('user rejected') || str.includes('denied')) return ''
-  return 'Transaction failed. Please try again.'
-}
-
 export default function OnchainPage() {
   const router = useRouter()
   const { address, isConnected } = useAccount()
@@ -71,12 +73,29 @@ export default function OnchainPage() {
   const { showToast } = useToast()
 
   const [isClaiming, setIsClaiming] = useState(false)
+  const [isResetting, setIsResetting] = useState(false)
+  const [resetError, setResetError] = useState('')
   const [claimError, setClaimError] = useState<string>('')
   const [isAutoVerification, setIsAutoVerification] = useState(false)
   const [showVerifyModal, setShowVerifyModal] = useState(false)
+  const [lastUniqueHash, setLastUniqueHash] = useState<`0x${string}` | null>(null)
 
   const { writeContract, data: txHash, isPending: isTxPending, error: writeError } = useWriteContract()
-  const { isSuccess: isTxSuccess, isError: isTxError } = useWaitForTransactionReceipt({ hash: txHash })
+  const {
+    isSuccess: isTxSuccess,
+    isError: isTxError,
+    error: receiptError,
+  } = useWaitForTransactionReceipt({ hash: txHash })
+
+  const {
+    writeContract: writeReset,
+    data: resetTxHash,
+    isPending: isResetPending,
+    error: resetWriteError,
+  } = useWriteContract()
+  const { isSuccess: isResetSuccess, error: resetReceiptError } = useWaitForTransactionReceipt({
+    hash: resetTxHash,
+  })
 
   // Clear cache when address changes or if cached signature is for wrong provider/action
   useEffect(() => {
@@ -134,6 +153,60 @@ export default function OnchainPage() {
     window.location.href = `${config.baseVerifyWebAppUrl}?${params.toString()}`
   }
 
+  const fetchOnchainToken = async (
+    onNotFound: 'modal' | 'error' = 'modal'
+  ): Promise<OnchainToken | null> => {
+    if (!address || !signMessage) {
+      setClaimError('Please connect your wallet')
+      return null
+    }
+
+    let signature
+    const cachedSignature = verifySignatureCache.get()
+    if (cachedSignature && verifySignatureCache.isValidForAddress(address, ACTION, 'coinbase')) {
+      signature = cachedSignature
+    } else {
+      signature = await generateSignature({
+        action: ACTION,
+        provider: 'coinbase',
+        traits: {},
+        signMessageFunction: async (message: string) =>
+          new Promise<string>((resolve, reject) =>
+            signMessage({ message }, { onSuccess: resolve, onError: reject })
+          ),
+        address,
+      })
+      verifySignatureCache.set(signature)
+    }
+
+    const response = await fetch('/api/onchain/verify-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ signature: signature.signature, message: signature.message }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      if (response.status === 404) {
+        if (onNotFound === 'modal') {
+          setShowVerifyModal(true)
+        } else {
+          setResetError(mapVerifyApiError(response.status, errorData))
+        }
+        return null
+      }
+      verifySignatureCache.clear()
+      const msg = mapVerifyApiError(response.status, errorData)
+      setClaimError(msg)
+      setResetError(msg)
+      return null
+    }
+
+    const { token }: { token: OnchainToken } = await response.json()
+    setLastUniqueHash(token.uniqueHash as `0x${string}`)
+    return token
+  }
+
   const handleClaim = async (isAutoVerifyFromSuccess = false) => {
     if (!address || !signMessage) {
       setClaimError('Please connect your wallet to claim')
@@ -144,54 +217,18 @@ export default function OnchainPage() {
     setClaimError('')
 
     try {
-      // Step 1: get or reuse a cached SIWE signature.
-      // Onchain tab: coinbase provider, no eligibility conditions (account only).
-      let signature
-      const cachedSignature = verifySignatureCache.get()
-      if (cachedSignature && verifySignatureCache.isValidForAddress(address, ACTION, 'coinbase')) {
-        signature = cachedSignature
-      } else {
-        signature = await generateSignature({
-          action: ACTION,
-          provider: 'coinbase',
-          traits: {},
-          signMessageFunction: async (message: string) =>
-            new Promise<string>((resolve, reject) =>
-              signMessage({ message }, { onSuccess: resolve, onError: reject })
-            ),
-          address,
-        })
-        verifySignatureCache.set(signature)
-      }
-
-      // Step 2: fetch the EIP-712 signed token from the backend (server-side route).
-      const response = await fetch('/api/onchain/verify-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ signature: signature.signature, message: signature.message }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        if (response.status === 404) {
-          if (isAutoVerifyFromSuccess) {
-            setClaimError('Coinbase account not found. Please verify your account first.')
-            setIsAutoVerification(false)
-          } else {
-            setIsAutoVerification(false)
-            setShowVerifyModal(true)
-          }
-          return
+      const token = await fetchOnchainToken(
+        isAutoVerifyFromSuccess ? 'error' : 'modal'
+      )
+      if (!token) {
+        if (isAutoVerifyFromSuccess) {
+          setClaimError('Coinbase account not found. Please verify your account first.')
         }
-        verifySignatureCache.clear()
-        setClaimError(errorData.error || 'Failed to get onchain verify token')
+        setIsAutoVerification(false)
         return
       }
 
-      const { token }: { token: OnchainToken } = await response.json()
       setIsAutoVerification(false)
-
-      // Pre-check on-chain dedup so duplicates show a clear message instead of a raw wallet revert.
       const alreadyClaimed = await publicClient.readContract({
         address: config.claimContractAddress as `0x${string}`,
         abi: AIRDROP_ABI,
@@ -218,11 +255,8 @@ export default function OnchainPage() {
       })
     } catch (err) {
       verifySignatureCache.clear()
-      const errorMessage = err instanceof Error ? err.message : 'Claim failed'
-      if (!errorMessage.toLowerCase().includes('user rejected') &&
-          !errorMessage.toLowerCase().includes('user denied') &&
-          !errorMessage.toLowerCase().includes('rejected')) {
-        setClaimError(errorMessage)
+      if (!isUserRejectedWalletError(err)) {
+        setClaimError(err instanceof Error ? err.message : 'Claim failed')
       }
       setIsAutoVerification(false)
     } finally {
@@ -230,12 +264,17 @@ export default function OnchainPage() {
     }
   }
 
-  // Parse onchain errors into user-friendly messages
-  const claimTxError = isTxError
-    ? 'Transaction failed. If you have already claimed, this identity cannot claim again.'
-    : writeError
-    ? parseTxError(writeError)
-    : ''
+  const claimTxError = (() => {
+    const txError = receiptError ?? writeError
+    if (!txError) return ''
+    return mapContractRevertError(txError)
+  })()
+
+  const resetTxError = (() => {
+    const txError = resetReceiptError ?? resetWriteError
+    if (!txError) return ''
+    return mapContractRevertError(txError)
+  })()
 
   // Notify on tx success
   useEffect(() => {
@@ -244,7 +283,53 @@ export default function OnchainPage() {
     }
   }, [isTxSuccess])
 
+  useEffect(() => {
+    if (isResetSuccess) {
+      setClaimError('')
+      showToast('Demo claim reset — you can claim again.', 'success')
+    }
+  }, [isResetSuccess])
+
+  const handleResetClaim = async () => {
+    if (!address) return
+
+    setIsResetting(true)
+    setResetError('')
+
+    try {
+      const token = await fetchOnchainToken('error')
+      if (!token) return
+
+      const alreadyClaimed = await publicClient.readContract({
+        address: config.claimContractAddress as `0x${string}`,
+        abi: AIRDROP_ABI,
+        functionName: 'claimed',
+        args: [token.uniqueHash as `0x${string}`],
+      })
+      if (!alreadyClaimed) {
+        setResetError('Nothing to reset — this identity has not claimed yet.')
+        return
+      }
+
+      writeReset({
+        address: config.claimContractAddress as `0x${string}`,
+        abi: AIRDROP_ABI,
+        functionName: 'resetClaim',
+        args: [token.uniqueHash as `0x${string}`],
+        chainId: config.claimChainId,
+      })
+    } catch (err) {
+      verifySignatureCache.clear()
+      if (!isUserRejectedWalletError(err)) {
+        setResetError(err instanceof Error ? err.message : 'Reset failed')
+      }
+    } finally {
+      setIsResetting(false)
+    }
+  }
+
   const isLoading = isClaiming || isTxPending
+  const isResetLoading = isResetting || isResetPending
 
   return (
     <Layout title="Onchain Airdrop (Base Sepolia)">
@@ -290,6 +375,42 @@ export default function OnchainPage() {
             </div>
           )}
         </div>
+
+        {config.enableDemoReset && isConnected && (
+          <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+            {lastUniqueHash && (
+              <p style={{ fontSize: '0.7rem', color: '#9ca3af', fontFamily: 'monospace', margin: '0 0 0.5rem', wordBreak: 'break-all' }}>
+                uniqueHash: {lastUniqueHash}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => void handleResetClaim()}
+              disabled={isResetLoading}
+              style={{
+                padding: '0.625rem 1rem',
+                background: 'transparent',
+                color: '#6b7280',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                cursor: isResetLoading ? 'not-allowed' : 'pointer',
+                fontSize: '0.8rem',
+                fontWeight: '500',
+              }}
+            >
+              {isResetting
+                ? 'Looking up your identity…'
+                : isResetPending
+                ? 'Confirm reset in wallet…'
+                : 'Reset demo claim'}
+            </button>
+            {(resetError || resetTxError) && (
+              <p style={{ fontSize: '0.8rem', color: '#991b1b', margin: '0.5rem 0 0' }}>
+                {resetError || resetTxError}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Claim Button */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
