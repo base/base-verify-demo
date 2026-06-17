@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { config } from "../../../lib/config";
+import { parseVerifyBackendError } from "../../../lib/verifyApiErrors";
 
 export default async function handler(
   req: NextApiRequest,
@@ -49,7 +50,7 @@ export default async function handler(
         verifyResponse.statusText
       );
       return res.status(verifyResponse.status).json({
-        error: "Failed to get onchain verify token",
+        error: parseVerifyBackendError(verifyResponse.status, responseBody),
       });
     }
 

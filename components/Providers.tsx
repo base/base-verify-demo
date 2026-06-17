@@ -7,13 +7,8 @@ import { WagmiProvider } from "wagmi";
 import { config } from "../lib/wagmi";
 
 const onchainKitConfig: AppConfig = {
-  appearance: {
-    mode: "auto",
-  },
-  wallet: {
-    display: "classic",
-    preference: "all",
-  },
+  appearance: { mode: "auto" },
+  wallet: { display: "classic", preference: "all" },
 } as const;
 
 export function Providers({ children }: PropsWithChildren) {
