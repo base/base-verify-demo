@@ -160,33 +160,42 @@ export function Layout({ children, title = "Base Verify Demo" }: LayoutProps) {
             Base Verify Documentation
           </button>
           <span style={{ color: "#d1d5db", fontSize: "0.8rem" }}>•</span>
-          <button
-            onClick={() => {
-              if (router.asPath.includes("coinbase")) {
-                router.push("/");
-              } else {
-                router.push("/coinbase");
-              }
-            }}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#9ca3af",
-              fontSize: "0.75rem",
-              cursor: "pointer",
-              textDecoration: "underline",
-              padding: 0,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "#1a1a1a";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "#9ca3af";
-            }}
-          >
-            Claim {router.asPath.includes("coinbase") ? "X" : "Coinbase"}{" "}
-            Airdrop
-          </button>
+          {!router.asPath.startsWith("/coinbase") && (
+            <button
+              onClick={() => router.push("/coinbase")}
+              style={{ background: "none", border: "none", color: "#9ca3af", fontSize: "0.75rem", cursor: "pointer", textDecoration: "underline", padding: 0 }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "#1a1a1a"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "#9ca3af"; }}
+            >
+              Claim Coinbase Airdrop
+            </button>
+          )}
+          {!router.asPath.startsWith("/coinbase") && !router.asPath.startsWith("/onchain") && (
+            <span style={{ color: "#d1d5db", fontSize: "0.8rem" }}>•</span>
+          )}
+          {router.asPath.startsWith("/coinbase") && (
+            <button
+              onClick={() => router.push("/")}
+              style={{ background: "none", border: "none", color: "#9ca3af", fontSize: "0.75rem", cursor: "pointer", textDecoration: "underline", padding: 0 }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "#1a1a1a"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "#9ca3af"; }}
+            >
+              Claim X Airdrop
+            </button>
+          )}
+          {router.asPath.startsWith("/coinbase") && (
+            <span style={{ color: "#d1d5db", fontSize: "0.8rem" }}>•</span>
+          )}
+          {!router.asPath.startsWith("/onchain") && (
+            <button
+              onClick={() => router.push("/onchain")}
+              style={{ background: "none", border: "none", color: "#9ca3af", fontSize: "0.75rem", cursor: "pointer", textDecoration: "underline", padding: 0 }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "#1a1a1a"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "#9ca3af"; }}
+            >
+              Claim Onchain Airdrop
+            </button>
+          )}
         </div>
       </div>
     </div>
