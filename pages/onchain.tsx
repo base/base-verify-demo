@@ -9,6 +9,7 @@ import { generateSignature } from '../lib/signature-generator'
 import { verifySignatureCache } from '../lib/signatureCache'
 import { config } from '../lib/config'
 import { useToast } from '../components/ToastProvider'
+import { OnchainSepoliaProviders } from '../components/OnchainSepoliaProviders'
 
 // Minimal ABI — only the functions and errors this page uses.
 const AIRDROP_ABI = [
@@ -74,6 +75,14 @@ function parseTxError(error: Error): string {
 }
 
 export default function OnchainPage() {
+  return (
+    <OnchainSepoliaProviders>
+      <OnchainPageContent />
+    </OnchainSepoliaProviders>
+  )
+}
+
+function OnchainPageContent() {
   const router = useRouter()
   const { address, isConnected } = useAccount()
   const { signMessage } = useSignMessage()
