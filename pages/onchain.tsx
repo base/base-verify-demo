@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import { Layout } from '../components/Layout'
 import { generateSignature } from '../lib/signature-generator'
 import { verifySignatureCache } from '../lib/signatureCache'
-import { config } from '../lib/config'
+import { config, contractExplorerUrl } from '../lib/config'
 import { useToast } from '../components/ToastProvider'
 import { parseOnchainTxError } from '../lib/onchainTxErrors'
 
@@ -359,6 +359,25 @@ export default function OnchainPage() {
           <p style={{ fontSize: '0.9rem', color: '#666', margin: '0 0 1.25rem 0', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto', lineHeight: '1.3' }}>
             Requires a Coinbase account. Sign in on Base, then confirm the claim on Base Sepolia.
           </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'center', marginBottom: '1.25rem', fontSize: '0.8rem' }}>
+            <a
+              href={contractExplorerUrl(config.claimContractAddress)}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#0052FF', fontFamily: 'monospace', textDecoration: 'none' }}
+            >
+              SybilResistantAirdrop ↗
+            </a>
+            <a
+              href={contractExplorerUrl(config.registryContractAddress)}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#0052FF', fontFamily: 'monospace', textDecoration: 'none' }}
+            >
+              VerifyRegistry ↗
+            </a>
+          </div>
 
           {(claimError || claimTxError) && (
             <div style={{ background: '#fef2f2', borderRadius: '12px', padding: '1rem 1.25rem', border: '1px solid #fecaca', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto', marginBottom: '1.5rem' }}>
