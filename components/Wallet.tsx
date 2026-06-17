@@ -1,18 +1,57 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useAccount } from 'wagmi'
-import { useConnect } from 'wagmi'
-import { useDisconnect } from 'wagmi'
-import { config } from '../lib/wagmi'
+import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi'
+import { config, baseSepolia } from '../lib/wagmi'
 import { useToast } from './ToastProvider'
 
 export function WalletComponent() {
-  const { isConnected, address } = useAccount()
+  const { isConnected, address, connector } = useAccount()
+  const [walletChainId, setWalletChainId] = useState<number | undefined>()
   const { connect, connectors } = useConnect({ config })
+  const { switchChainAsync } = useSwitchChain()
   const { disconnect } = useDisconnect()
   const { showToast } = useToast()
   const [selectedConnectorId, setSelectedConnectorId] = useState<string>()
+
+  useEffect(() => {
+    if (!connector) {
+      setWalletChainId(undefined)
+      return
+    }
+
+    let cancelled = false
+
+    const refresh = async () => {
+      try {
+        const id = await connector.getChainId()
+        if (!cancelled) setWalletChainId(id)
+      } catch {
+        if (!cancelled) setWalletChainId(undefined)
+      }
+    }
+
+    void refresh()
+
+    let provider: { on?: (event: string, handler: () => void) => void; removeListener?: (event: string, handler: () => void) => void } | undefined
+    const onChainChanged = () => { void refresh() }
+
+    void connector.getProvider().then((p) => {
+      provider = p as typeof provider
+      provider?.on?.('chainChanged', onChainChanged)
+    })
+
+    return () => {
+      cancelled = true
+      provider?.removeListener?.('chainChanged', onChainChanged)
+    }
+  }, [connector])
+
+  // Base Account often stays on mainnet (8453) after connect; nudge to Sepolia.
+  useEffect(() => {
+    if (!isConnected || walletChainId === undefined || walletChainId === baseSepolia.id) return
+    void switchChainAsync({ chainId: baseSepolia.id }).catch(() => {})
+  }, [isConnected, walletChainId, switchChainAsync])
 
   useEffect(() => {
     if (selectedConnectorId || connectors.length === 0) return
@@ -44,6 +83,20 @@ export function WalletComponent() {
 
     return (
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div
+          style={{
+            padding: '0.5rem 0.75rem',
+            border: '1px solid #d1d5db',
+            borderRadius: '8px',
+            background: 'white',
+            color: '#374151',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            fontFamily: 'monospace',
+          }}
+        >
+          Chain {walletChainId ?? '…'}
+        </div>
         <div
           onClick={() => disconnect()}
           style={{
@@ -117,7 +170,10 @@ export function WalletComponent() {
       </select>
       <button
         type="button"
-        onClick={() => selectedConnector && connect({ connector: selectedConnector })}
+        onClick={() =>
+          selectedConnector &&
+          connect({ connector: selectedConnector, chainId: baseSepolia.id })
+        }
         disabled={!selectedConnector}
         style={{
           padding: '0.5rem 1rem',

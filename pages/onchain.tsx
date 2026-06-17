@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { useAccount, useSignMessage, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useAccount, useSignMessage, useSwitchChain, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { createPublicClient, http } from 'viem'
 import { baseSepolia } from 'viem/chains'
 import { useState, useEffect } from 'react'
@@ -9,6 +9,7 @@ import { generateSignature } from '../lib/signature-generator'
 import { verifySignatureCache } from '../lib/signatureCache'
 import { config } from '../lib/config'
 import { useToast } from '../components/ToastProvider'
+import { parseOnchainTxError } from '../lib/onchainTxErrors'
 
 // Minimal ABI — only the functions and errors this page uses.
 const AIRDROP_ABI = [
@@ -33,7 +34,9 @@ const AIRDROP_ABI = [
   },
   { name: 'AlreadyClaimed', type: 'error', inputs: [] },
   { name: 'ClaimNotFound', type: 'error', inputs: [] },
-  { name: 'InvalidVerification', type: 'error', inputs: [] },
+  { name: 'TokenExpired', type: 'error', inputs: [] },
+  { name: 'InvalidSignature', type: 'error', inputs: [] },
+  { name: 'UntrustedSigner', type: 'error', inputs: [] },
   {
     name: 'resetClaim',
     type: 'function',
@@ -58,25 +61,11 @@ const ACTION = 'my_app_airdrop_2026'
 // Read-only client for the dedup pre-check.
 const publicClient = createPublicClient({ chain: baseSepolia, transport: http() })
 
-function parseTxError(error: Error): string {
-  // Walk the full error + cause chain as strings — viem nests custom error names in cause.
-  let str = ''
-  let e: unknown = error
-  while (e instanceof Error) {
-    str += e.message + ' '
-    e = (e as any).cause
-  }
-  if (str.includes('AlreadyClaimed')) return 'This identity has already claimed. Each Coinbase account can only claim once.'
-  if (str.includes('ClaimNotFound')) return 'Nothing to reset — this identity has not claimed yet.'
-  if (str.includes('InvalidVerification')) return 'Token expired or invalid. Please try again.'
-  if (str.includes('User rejected') || str.includes('user rejected') || str.includes('denied')) return ''
-  return 'Transaction failed. Please try again.'
-}
-
 export default function OnchainPage() {
   const router = useRouter()
   const { address, isConnected } = useAccount()
   const { signMessage } = useSignMessage()
+  const { switchChainAsync } = useSwitchChain()
   const { showToast } = useToast()
 
   const [isClaiming, setIsClaiming] = useState(false)
@@ -88,7 +77,8 @@ export default function OnchainPage() {
   const [lastUniqueHash, setLastUniqueHash] = useState<`0x${string}` | null>(null)
 
   const { writeContract, data: txHash, isPending: isTxPending, error: writeError } = useWriteContract()
-  const { isSuccess: isTxSuccess, isError: isTxError } = useWaitForTransactionReceipt({ hash: txHash })
+  const { isSuccess: isTxSuccess, isError: isTxError, error: txReceiptError } =
+    useWaitForTransactionReceipt({ hash: txHash })
 
   const {
     writeContract: writeReset,
@@ -96,7 +86,8 @@ export default function OnchainPage() {
     isPending: isResetPending,
     error: resetWriteError,
   } = useWriteContract()
-  const { isSuccess: isResetSuccess } = useWaitForTransactionReceipt({ hash: resetTxHash })
+  const { isSuccess: isResetSuccess, isError: isResetTxError, error: resetReceiptError } =
+    useWaitForTransactionReceipt({ hash: resetTxHash })
 
   // Clear cache when address changes or if cached signature is for wrong provider/action
   useEffect(() => {
@@ -154,6 +145,10 @@ export default function OnchainPage() {
     window.location.href = `${config.baseVerifyWebAppUrl}?${params.toString()}`
   }
 
+  const ensureClaimChain = async () => {
+    await switchChainAsync({ chainId: config.claimChainId })
+  }
+
   const fetchOnchainToken = async (
     onNotFound: 'modal' | 'error' = 'modal'
   ): Promise<OnchainToken | null> => {
@@ -161,6 +156,8 @@ export default function OnchainPage() {
       setClaimError('Please connect your wallet')
       return null
     }
+
+    await ensureClaimChain()
 
     let signature
     const cachedSignature = verifySignatureCache.get()
@@ -241,25 +238,33 @@ export default function OnchainPage() {
         return
       }
 
-      // Step 3: submit the claim tx to the consumer contract on Base Sepolia.
+      // Preflight surfaces registry reverts before the wallet prompt.
+      const claimArgs = [
+        token.uniqueHash as `0x${string}`,
+        BigInt(token.expiration),
+        token.delegate as `0x${string}`,
+        token.signature as `0x${string}`,
+      ] as const
+
+      await publicClient.simulateContract({
+        account: address,
+        address: config.claimContractAddress as `0x${string}`,
+        abi: AIRDROP_ABI,
+        functionName: 'claim',
+        args: claimArgs,
+      })
+
       writeContract({
         address: config.claimContractAddress as `0x${string}`,
         abi: AIRDROP_ABI,
         functionName: 'claim',
-        args: [
-          token.uniqueHash as `0x${string}`,
-          BigInt(token.expiration),
-          token.delegate as `0x${string}`,
-          token.signature as `0x${string}`,
-        ],
+        args: claimArgs,
         chainId: config.claimChainId,
       })
     } catch (err) {
       verifySignatureCache.clear()
-      const errorMessage = err instanceof Error ? err.message : 'Claim failed'
-      if (!errorMessage.toLowerCase().includes('user rejected') &&
-          !errorMessage.toLowerCase().includes('user denied') &&
-          !errorMessage.toLowerCase().includes('rejected')) {
+      const errorMessage = parseOnchainTxError(err) || (err instanceof Error ? err.message : 'Claim failed')
+      if (errorMessage) {
         setClaimError(errorMessage)
       }
       setIsAutoVerification(false)
@@ -270,9 +275,9 @@ export default function OnchainPage() {
 
   // Parse onchain errors into user-friendly messages
   const claimTxError = isTxError
-    ? 'Transaction failed. If you have already claimed, this identity cannot claim again.'
+    ? parseOnchainTxError(txReceiptError)
     : writeError
-    ? parseTxError(writeError)
+    ? parseOnchainTxError(writeError)
     : ''
 
   // Notify on tx success
@@ -319,10 +324,8 @@ export default function OnchainPage() {
       })
     } catch (err) {
       verifySignatureCache.clear()
-      const errorMessage = err instanceof Error ? err.message : 'Reset failed'
-      if (!errorMessage.toLowerCase().includes('user rejected') &&
-          !errorMessage.toLowerCase().includes('user denied') &&
-          !errorMessage.toLowerCase().includes('rejected')) {
+      const errorMessage = parseOnchainTxError(err) || (err instanceof Error ? err.message : 'Reset failed')
+      if (errorMessage) {
         setResetError(errorMessage)
       }
     } finally {
@@ -332,7 +335,11 @@ export default function OnchainPage() {
 
   const isLoading = isClaiming || isTxPending
   const isResetLoading = isResetting || isResetPending
-  const resetTxError = resetWriteError ? parseTxError(resetWriteError) : ''
+  const resetTxError = isResetTxError
+    ? parseOnchainTxError(resetReceiptError)
+    : resetWriteError
+    ? parseOnchainTxError(resetWriteError)
+    : ''
 
   return (
     <Layout title="Onchain Airdrop (Base Sepolia)">
