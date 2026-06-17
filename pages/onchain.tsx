@@ -9,6 +9,11 @@ import { generateSignature } from '../lib/signature-generator'
 import { verifySignatureCache } from '../lib/signatureCache'
 import { config } from '../lib/config'
 import { useToast } from '../components/ToastProvider'
+import {
+  isUserRejectedWalletError,
+  mapContractRevertError,
+  mapVerifyApiError,
+} from '../lib/errors'
 
 // Minimal ABI — only the functions and errors this page uses.
 const AIRDROP_ABI = [
@@ -34,6 +39,9 @@ const AIRDROP_ABI = [
   { name: 'AlreadyClaimed', type: 'error', inputs: [] },
   { name: 'ClaimNotFound', type: 'error', inputs: [] },
   { name: 'InvalidVerification', type: 'error', inputs: [] },
+  { name: 'TokenExpired', type: 'error', inputs: [] },
+  { name: 'InvalidSignature', type: 'error', inputs: [] },
+  { name: 'UntrustedSigner', type: 'error', inputs: [] },
   {
     name: 'resetClaim',
     type: 'function',
@@ -58,21 +66,6 @@ const ACTION = 'my_app_airdrop_2026'
 // Read-only client for the dedup pre-check.
 const publicClient = createPublicClient({ chain: baseSepolia, transport: http() })
 
-function parseTxError(error: Error): string {
-  // Walk the full error + cause chain as strings — viem nests custom error names in cause.
-  let str = ''
-  let e: unknown = error
-  while (e instanceof Error) {
-    str += e.message + ' '
-    e = (e as any).cause
-  }
-  if (str.includes('AlreadyClaimed')) return 'This identity has already claimed. Each Coinbase account can only claim once.'
-  if (str.includes('ClaimNotFound')) return 'Nothing to reset — this identity has not claimed yet.'
-  if (str.includes('InvalidVerification')) return 'Token expired or invalid. Please try again.'
-  if (str.includes('User rejected') || str.includes('user rejected') || str.includes('denied')) return ''
-  return 'Transaction failed. Please try again.'
-}
-
 export default function OnchainPage() {
   const router = useRouter()
   const { address, isConnected } = useAccount()
@@ -88,7 +81,11 @@ export default function OnchainPage() {
   const [lastUniqueHash, setLastUniqueHash] = useState<`0x${string}` | null>(null)
 
   const { writeContract, data: txHash, isPending: isTxPending, error: writeError } = useWriteContract()
-  const { isSuccess: isTxSuccess, isError: isTxError } = useWaitForTransactionReceipt({ hash: txHash })
+  const {
+    isSuccess: isTxSuccess,
+    isError: isTxError,
+    error: receiptError,
+  } = useWaitForTransactionReceipt({ hash: txHash })
 
   const {
     writeContract: writeReset,
@@ -96,7 +93,9 @@ export default function OnchainPage() {
     isPending: isResetPending,
     error: resetWriteError,
   } = useWriteContract()
-  const { isSuccess: isResetSuccess } = useWaitForTransactionReceipt({ hash: resetTxHash })
+  const { isSuccess: isResetSuccess, error: resetReceiptError } = useWaitForTransactionReceipt({
+    hash: resetTxHash,
+  })
 
   // Clear cache when address changes or if cached signature is for wrong provider/action
   useEffect(() => {
@@ -192,12 +191,12 @@ export default function OnchainPage() {
         if (onNotFound === 'modal') {
           setShowVerifyModal(true)
         } else {
-          setResetError('Coinbase account not found. Verify your account first.')
+          setResetError(mapVerifyApiError(response.status, errorData))
         }
         return null
       }
       verifySignatureCache.clear()
-      const msg = errorData.error || 'Failed to get onchain verify token'
+      const msg = mapVerifyApiError(response.status, errorData)
       setClaimError(msg)
       setResetError(msg)
       return null
@@ -256,11 +255,8 @@ export default function OnchainPage() {
       })
     } catch (err) {
       verifySignatureCache.clear()
-      const errorMessage = err instanceof Error ? err.message : 'Claim failed'
-      if (!errorMessage.toLowerCase().includes('user rejected') &&
-          !errorMessage.toLowerCase().includes('user denied') &&
-          !errorMessage.toLowerCase().includes('rejected')) {
-        setClaimError(errorMessage)
+      if (!isUserRejectedWalletError(err)) {
+        setClaimError(err instanceof Error ? err.message : 'Claim failed')
       }
       setIsAutoVerification(false)
     } finally {
@@ -268,12 +264,17 @@ export default function OnchainPage() {
     }
   }
 
-  // Parse onchain errors into user-friendly messages
-  const claimTxError = isTxError
-    ? 'Transaction failed. If you have already claimed, this identity cannot claim again.'
-    : writeError
-    ? parseTxError(writeError)
-    : ''
+  const claimTxError = (() => {
+    const txError = receiptError ?? writeError
+    if (!txError) return ''
+    return mapContractRevertError(txError)
+  })()
+
+  const resetTxError = (() => {
+    const txError = resetReceiptError ?? resetWriteError
+    if (!txError) return ''
+    return mapContractRevertError(txError)
+  })()
 
   // Notify on tx success
   useEffect(() => {
@@ -319,11 +320,8 @@ export default function OnchainPage() {
       })
     } catch (err) {
       verifySignatureCache.clear()
-      const errorMessage = err instanceof Error ? err.message : 'Reset failed'
-      if (!errorMessage.toLowerCase().includes('user rejected') &&
-          !errorMessage.toLowerCase().includes('user denied') &&
-          !errorMessage.toLowerCase().includes('rejected')) {
-        setResetError(errorMessage)
+      if (!isUserRejectedWalletError(err)) {
+        setResetError(err instanceof Error ? err.message : 'Reset failed')
       }
     } finally {
       setIsResetting(false)
@@ -332,7 +330,6 @@ export default function OnchainPage() {
 
   const isLoading = isClaiming || isTxPending
   const isResetLoading = isResetting || isResetPending
-  const resetTxError = resetWriteError ? parseTxError(resetWriteError) : ''
 
   return (
     <Layout title="Onchain Airdrop (Base Sepolia)">
