@@ -388,7 +388,7 @@ function OnchainPageContent() {
           )}
         </div>
 
-        {config.enableDemoReset && isConnected && (
+        {isConnected && (
           <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
             {lastUniqueHash && (
               <p style={{ fontSize: '0.7rem', color: '#9ca3af', fontFamily: 'monospace', margin: '0 0 0.5rem', wordBreak: 'break-all' }}>
