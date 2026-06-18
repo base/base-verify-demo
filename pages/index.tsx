@@ -304,8 +304,8 @@ export default function Home({ initialUsers, error }: Props) {
       } else {
         const errorData = await response.json()
 
-        // Handle 400 with traits not satisfied - Twitter account not verified
-        if (response.status === 400 && errorData.message === 'verification_traits_not_satisfied') {
+        // Handle 412 with traits not satisfied - Twitter account not verified
+        if (response.status === 412 && errorData.error === 'X account does not satisfy verification requirements.') {
           setVerificationError('Sorry, your X account does not have a blue checkmark. You are not eligible for this airdrop.')
           setIsAutoVerification(false) // Reset flag
         }

@@ -30,3 +30,11 @@ model CoinbaseVerifiedUser {
 
   @@map("coinbase_verified_users")
 }
+
+model DeletedToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  deletedAt DateTime @default(now()) @map("deleted_at")
+
+  @@map("deleted_tokens")
+}

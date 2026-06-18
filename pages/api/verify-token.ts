@@ -126,6 +126,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
+      // Check if this token was previously used and deleted (sybil bypass prevention)
+      const previouslyDeleted = await prisma.deletedToken.findUnique({
+        where: { token: baseVerifyToken }
+      });
+      if (previouslyDeleted) {
+        return res.status(409).json({
+          error: 'This verification token has been previously used and deleted. Cannot re-claim.'
+        });
+      }
+
       const result = await prisma.verifiedUser.upsert({
         where: { address: walletAddress },
         update: {
