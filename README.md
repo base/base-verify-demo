@@ -307,12 +307,12 @@ Users can delete their own airdrop claim:
 
 For more detailed information, see the `/docs` folder:
 
-- **[Getting Started](/docs/index.md)** - Quick overview and contact information
-- **[Core Concepts](/docs/core-concepts.md)** - Understanding providers, traits, tokens, and Sybil resistance
-- **[Integration Guide](/docs/integration.md)** - Complete implementation walkthrough with code examples
-- **[Trait Catalog](/docs/traits.md)** - All available traits for X, Coinbase, Instagram, and TikTok
-- **[API Reference](/docs/api.md)** - Complete API endpoint documentation
-- **[Security & Privacy](/docs/security.md)** - Security best practices and data handling
+- **[Getting Started](docs/index.md)** - Quick overview and contact information
+- **[Core Concepts](docs/core-concepts.md)** - Understanding providers, traits, tokens, and Sybil resistance
+- **[Integration Guide](docs/integration.md)** - Complete implementation walkthrough with code examples
+- **[Trait Catalog](docs/traits.md)** - All available traits for X, Coinbase, Instagram, and TikTok
+- **[API Reference](docs/api.md)** - Complete API endpoint documentation
+- **[Security & Privacy](docs/security.md)** - Security best practices and data handling
 
 ---
 
