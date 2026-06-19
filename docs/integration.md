@@ -14,7 +14,7 @@ Even if a wallet has few transactions, Base Verify reveals if the user is high-v
 
 **Example Use Cases:**
 - Token-gated airdrops or daily rewards
-- Exclusive content access (e.g. creator coins)
+- Exclusive content access (e.g., creator coins)
 - Identity-based rewards and loyalty programs
 
 ---
