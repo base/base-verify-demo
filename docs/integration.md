@@ -256,7 +256,7 @@ export default async function handler(req, res) {
     });
   }
 
-  // Now safe to verify signature with Base Verify API
+  // Now safe to check signature with Base Verify API
   const response = await fetch('https://verify.base.dev/v1/base_verify_token', {
     method: 'POST',
     headers: {
