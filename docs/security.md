@@ -85,7 +85,7 @@ The user signs this message, proving they control the wallet and agree to check 
 Users can delete their verifications at any time:
 - Removes all stored provider data
 - Invalidates future token generation
-- Your app's stored tokens become meaningless (user can't re-verify with same account)
+- Your app's stored tokens become completely invalid (user can't re-verify with same account)
 
 ---
 

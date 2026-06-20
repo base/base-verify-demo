@@ -56,7 +56,7 @@ type OnchainToken = {
   signature: string
 }
 
-const ACTION = 'my_app_airdrop_2026'
+const ACTION = 'claim_demo_x_airdrop'
 
 // Read-only client for the dedup pre-check.
 const publicClient = createPublicClient({ chain: baseSepolia, transport: http() })
@@ -96,8 +96,7 @@ export default function OnchainPage() {
       if (cachedSignature) {
         if (cachedSignature.address.toLowerCase() !== address.toLowerCase()) {
           verifySignatureCache.clear()
-        } else if (!cachedSignature.message.includes('urn:verify:provider:coinbase') ||
-                   !cachedSignature.message.includes(`urn:verify:action:${ACTION}`)) {
+        } else if (!cachedSignature.message.includes(`urn:verify:action:${ACTION}`)) {
           verifySignatureCache.clear()
         }
       }
