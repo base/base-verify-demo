@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import { WalletComponent } from "./Wallet";
+import { NetworkSwitcher } from "./NetworkSwitcher";
 import { useToast } from "./ToastProvider";
 import { verifySignatureCache } from "../lib/signatureCache";
 import { useState } from "react";
@@ -65,6 +66,7 @@ export function Layout({ children, title = "Base Verify Demo" }: LayoutProps) {
             </h1>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <NetworkSwitcher />
             <WalletComponent />
           </div>
         </div>
