@@ -103,7 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       // Extract user data from verification response
       const addressMatch = message.match(/0x[a-fA-F0-9]{40}/);
-      const walletAddress = addressMatch ? addressMatch[0] : '';
+      const walletAddress = addressMatch ? addressMatch[0].toLowerCase() : '';
 
       console.log('Extracted wallet address:', walletAddress);
 
