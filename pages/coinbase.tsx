@@ -34,7 +34,11 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string>('')
   const [showVerifyModal, setShowVerifyModal] = useState(false)
+  const [tamperStripTrait, setTamperStripTrait] = useState(false)
+  const [tamperChangeAction, setTamperChangeAction] = useState(false)
   const { showToast } = useToast();
+
+  const isDev = process.env.NODE_ENV !== 'production'
 
   // Clear cache when address changes or if cached signature is for wrong provider
   useEffect(() => {
@@ -232,20 +236,29 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
     try {
       let signature;
 
-      // Check for cached signature first
+      // Dev-only tamper toggles simulate a malicious client editing the message
+      // before signing. The server-side pin in /api/coinbase/verify-token should
+      // reject either case with a 400.
+      const isTampering = isDev && (tamperStripTrait || tamperChangeAction)
+      const action = isDev && tamperChangeAction
+        ? 'claim_demo_coinbase_airdrop_tampered'
+        : 'claim_demo_coinbase_airdrop'
+      const traits = isDev && tamperStripTrait
+        ? {}
+        : { 'coinbase_one_active': 'true' }
+
+      // Check for cached signature first (skipped while tampering so each attempt re-signs)
       const cachedSignature = verifySignatureCache.get();
-      if (cachedSignature && verifySignatureCache.isValidForAddress(address, 'claim_demo_coinbase_airdrop', 'coinbase')) {
+      if (!isTampering && cachedSignature && verifySignatureCache.isValidForAddress(address, 'claim_demo_coinbase_airdrop', 'coinbase')) {
         console.log('Using cached signature');
         signature = cachedSignature;
       } else {
-        console.log('Generating new signature');
+        console.log('Generating new signature', isTampering ? '(tampered)' : '');
         // Generate SIWE signature for base_verify_token
         signature = await generateSignature({
-          action: 'claim_demo_coinbase_airdrop',
+          action,
           provider: 'coinbase',
-          traits: { 
-            'coinbase_one_active': 'true',
-          },
+          traits,
           signMessageFunction: async (message: string) => {
             return new Promise<string>((resolve, reject) => {
               signMessage(
@@ -260,8 +273,10 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
           address: address,
         });
 
-        // Cache the newly generated signature
-        verifySignatureCache.set(signature);
+        // Cache the newly generated signature (never cache a tampered one)
+        if (!isTampering) {
+          verifySignatureCache.set(signature);
+        }
       }
 
       const { code, state } = router.query;
@@ -498,6 +513,32 @@ export default function CoinbasePage({ initialUsers, error }: Props) {
             )}
 
           </div>
+
+          {/* Dev-only tamper controls — simulate a malicious client editing the
+              signed message. The server pin should reject these with a 400. */}
+          {isDev && (
+            <div style={{
+              maxWidth: '400px',
+              margin: '0 auto 1.25rem',
+              padding: '0.75rem 1rem',
+              background: '#fffbeb',
+              border: '1px dashed #f59e0b',
+              borderRadius: '12px',
+              textAlign: 'left'
+            }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#92400e', marginBottom: '0.5rem' }}>
+                Dev: tamper with signed message
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#78350f', cursor: 'pointer', marginBottom: '0.25rem' }}>
+                <input type="checkbox" checked={tamperStripTrait} onChange={(e) => setTamperStripTrait(e.target.checked)} />
+                Strip the coinbase_one_active trait
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#78350f', cursor: 'pointer' }}>
+                <input type="checkbox" checked={tamperChangeAction} onChange={(e) => setTamperChangeAction(e.target.checked)} />
+                Change the action
+              </label>
+            </div>
+          )}
 
           {/* Claim Section */}
           <div style={{

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi'
 import { config, baseSepolia } from '../lib/wagmi'
 import { useToast } from './ToastProvider'
@@ -47,9 +47,16 @@ export function WalletComponent() {
     }
   }, [connector])
 
-  // Base Account often stays on mainnet (8453) after connect; nudge to Sepolia.
+  // Base Account often stays on mainnet (8453) after connect; nudge to Sepolia once.
+  // Only on the initial connect — don't fight manual network switches afterwards.
+  const nudgedToSepolia = useRef(false)
   useEffect(() => {
-    if (!isConnected || walletChainId === undefined || walletChainId === baseSepolia.id) return
+    if (!isConnected) {
+      nudgedToSepolia.current = false
+      return
+    }
+    if (nudgedToSepolia.current || walletChainId === undefined || walletChainId === baseSepolia.id) return
+    nudgedToSepolia.current = true
     void switchChainAsync({ chainId: baseSepolia.id }).catch(() => {})
   }, [isConnected, walletChainId, switchChainAsync])
 
