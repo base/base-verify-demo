@@ -96,8 +96,7 @@ export default function OnchainPage() {
       if (cachedSignature) {
         if (cachedSignature.address.toLowerCase() !== address.toLowerCase()) {
           verifySignatureCache.clear()
-        } else if (!cachedSignature.message.includes('urn:verify:provider:coinbase') ||
-                   !cachedSignature.message.includes(`urn:verify:action:${ACTION}`)) {
+        } else if (!cachedSignature.message.includes(`urn:verify:action:${ACTION}`)) {
           verifySignatureCache.clear()
         }
       }
