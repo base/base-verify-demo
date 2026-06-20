@@ -107,7 +107,7 @@ Traits are specific attributes of provider accounts you can verify. Examples:
 
 **Coinbase:**
 - `coinbase_one_active:eq:true` - Active Coinbase One subscription
-- `coinbase_one_billed:eq:true` - User has been billed for Coinbase One
+- `coinbase_one_billed:eq:true` - User has an active Coinbase One subscription
 
 **Instagram:**
 - `followers_count:gte:5000` - 5000+ followers
