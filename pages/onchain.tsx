@@ -56,7 +56,7 @@ type OnchainToken = {
   signature: string
 }
 
-const ACTION = 'my_app_airdrop_2026'
+const ACTION = 'claim_demo_x_airdrop'
 
 // Read-only client for the dedup pre-check.
 const publicClient = createPublicClient({ chain: baseSepolia, transport: http() })
