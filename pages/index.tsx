@@ -62,7 +62,7 @@ export default function Home({ initialUsers, error }: Props) {
     if (success === 'true' && address && isConnected && !isVerifying && !verificationResult) {
       console.log('Auto-verifying after successful redirect...');
       setIsAutoVerification(true);
-      handleVerify(true);
+      handleVerify(true, router.query.code as string, router.query.state as string);
 
       // Clean up the URL to remove the success parameter
       const { success: _, code: __, state: ___, ...cleanQuery } = router.query;
@@ -219,7 +219,7 @@ export default function Home({ initialUsers, error }: Props) {
     setShowVerifyModal(true);
   }
 
-  const handleVerify = async (isAutoVerifyFromSuccess = false) => {
+  const handleVerify = async (isAutoVerifyFromSuccess = false, passedCode?: string, passedState?: string) => {
     if (!address || !signMessage) {
       setVerificationError('Please connect your wallet to claim')
       return
@@ -262,7 +262,7 @@ export default function Home({ initialUsers, error }: Props) {
         verifySignatureCache.set(signature);
       }
 
-      const { code, state } = router.query;
+      const code = passedCode || router.query.code; const state = passedState || router.query.state;
       const storedCodeVerifier = sessionStorage.getItem('pkce_code_verifier');
       const storedState = sessionStorage.getItem('pkce_state');
 
