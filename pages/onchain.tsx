@@ -51,9 +51,10 @@ type OnchainToken = {
   signature: string
 }
 
-const ACTION = 'my_app_airdrop_2026'
 // SIWE statement the onchain endpoint requires — must match the backend exactly.
 const ONCHAIN_STATEMENT = 'Claim eligibility for a Base Verify onchain benefit.'
+// The only SIWE resource the backend reads: binds the token to this consumer contract on this chain.
+const CLAIM_RESOURCE = `eip155:${config.claimChainId}:${config.claimContractAddress}`
 
 // Read-only client for the dedup pre-check.
 const publicClient = createPublicClient({ chain: baseSepolia, transport: http() })
@@ -86,17 +87,12 @@ export default function OnchainPage() {
   const { isSuccess: isResetSuccess, isError: isResetTxError, error: resetReceiptError } =
     useWaitForTransactionReceipt({ hash: resetTxHash })
 
-  // Clear cache when address changes or if cached signature is for wrong provider/action
+  // Clear cache when the address changes or the cached signature isn't for the current claim contract
   useEffect(() => {
     if (address) {
       const cachedSignature = verifySignatureCache.get()
-      if (cachedSignature) {
-        if (cachedSignature.address.toLowerCase() !== address.toLowerCase()) {
-          verifySignatureCache.clear()
-        } else if (!cachedSignature.message.includes('urn:verify:provider:coinbase') ||
-                   !cachedSignature.message.includes(`urn:verify:action:${ACTION}`)) {
-          verifySignatureCache.clear()
-        }
+      if (cachedSignature && !verifySignatureCache.isValidForResource(address, CLAIM_RESOURCE)) {
+        verifySignatureCache.clear()
       }
     }
   }, [address])
@@ -158,16 +154,16 @@ export default function OnchainPage() {
 
     let signature
     const cachedSignature = verifySignatureCache.get()
-    if (cachedSignature && verifySignatureCache.isValidForAddress(address, ACTION, 'coinbase')) {
+    if (cachedSignature && verifySignatureCache.isValidForResource(address, CLAIM_RESOURCE)) {
       signature = cachedSignature
     } else {
       signature = await generateSignature({
-        action: ACTION,
-        provider: 'coinbase',
-        traits: {},
+        // Onchain only needs the statement, chain, and the eip155 contract resource — the backend
+        // reads the provider/conditions from the contract itself, not from the SIWE message.
         statement: ONCHAIN_STATEMENT,
         chainId: config.claimChainId,
-        extraResources: [`eip155:${config.claimChainId}:${config.claimContractAddress}`],
+        provider: '',
+        extraResources: [CLAIM_RESOURCE],
         signMessageFunction: async (message: string) =>
           new Promise<string>((resolve, reject) =>
             signMessage({ message }, { onSuccess: resolve, onError: reject })

@@ -79,7 +79,16 @@ export const verifySignatureCache = {
     if (provider && !cached.message.includes(`urn:verify:provider:${provider}`)) {
       return false;
     }
-    
+
     return true;
+  },
+
+  // Onchain flow: a cached signature is reusable if it's for this address and its SIWE message
+  // carries the same resource (the eip155:<chainId>:<contract> binding the backend reads).
+  isValidForResource(address: string, resource: string): boolean {
+    const cached = this.get();
+    if (!cached) return false;
+    if (cached.address.toLowerCase() !== address.toLowerCase()) return false;
+    return cached.message.toLowerCase().includes(resource.toLowerCase());
   },
 };
