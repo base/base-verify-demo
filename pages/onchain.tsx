@@ -4,12 +4,11 @@ import { useAccount, useSwitchChain, useWriteContract, useWaitForTransactionRece
 import { getConnectorClient } from 'wagmi/actions'
 import { createPublicClient, http } from 'viem'
 import { signMessage as viemSignMessage } from 'viem/actions'
-import { baseSepolia } from 'viem/chains'
 import { useState, useEffect } from 'react'
 import { Layout } from '../components/Layout'
 import { generateSignature } from '../lib/signature-generator'
 import { verifySignatureCache } from '../lib/signatureCache'
-import { config, contractExplorerUrl } from '../lib/config'
+import { config, contractExplorerUrl, txExplorerUrl, claimChain } from '../lib/config'
 import { config as wagmiConfig } from '../lib/wagmi'
 import { useToast } from '../components/ToastProvider'
 import { parseOnchainTxError } from '../lib/onchainTxErrors'
@@ -60,7 +59,7 @@ const ONCHAIN_STATEMENT = 'Claim eligibility for a Base Verify onchain benefit.'
 const CLAIM_RESOURCE = `eip155:${config.claimChainId}:${config.claimContractAddress}`
 
 // Read-only client for the dedup pre-check.
-const publicClient = createPublicClient({ chain: baseSepolia, transport: http() })
+const publicClient = createPublicClient({ chain: claimChain, transport: http() })
 
 export default function OnchainPage() {
   const router = useRouter()
@@ -152,7 +151,7 @@ export default function OnchainPage() {
       return null
     }
 
-    // Put the connector on Base Sepolia so the signing client below matches its chain.
+    // Put the connector on the claim chain so the signing client below matches its chain.
     await ensureClaimChain()
 
     let signature
@@ -169,7 +168,7 @@ export default function OnchainPage() {
         // Sign via a connector client pinned to the claim chain. Passing chainId explicitly avoids
         // wagmi's stale connection.chainId (the base-account connector doesn't sync switches to the store).
         signMessageFunction: async (message: string) => {
-          const client = await getConnectorClient(wagmiConfig, { chainId: baseSepolia.id })
+          const client = await getConnectorClient(wagmiConfig, { chainId: claimChain.id })
           return viemSignMessage(client, { account: client.account, message })
         },
         address,
@@ -341,7 +340,7 @@ export default function OnchainPage() {
     : ''
 
   return (
-    <Layout title="Onchain Airdrop (Base Sepolia)">
+    <Layout title={`Onchain Airdrop (${claimChain.name})`}>
       <Head>
         <title>Claim Your Onchain Airdrop</title>
         <meta name="description" content="Claim an onchain airdrop gated by Base Verify — deduplication enforced by smart contract." />
@@ -356,7 +355,7 @@ export default function OnchainPage() {
             claim your onchain airdrop
           </h2>
           <p style={{ fontSize: '0.9rem', color: '#666', margin: '0 0 1.25rem 0', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto', lineHeight: '1.3' }}>
-            Requires a Coinbase account. Sign in on Base, then confirm the claim on Base Sepolia.
+            Requires a Coinbase account. Sign in on Base, then confirm the claim on {claimChain.name}.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'center', marginBottom: '1.25rem', fontSize: '0.8rem' }}>
@@ -393,7 +392,7 @@ export default function OnchainPage() {
                 Claimed onchain!
               </p>
               <a
-                href={`https://sepolia.basescan.org/tx/${txHash}`}
+                href={txExplorerUrl(txHash)}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ fontSize: '0.75rem', color: '#16a34a', fontFamily: 'monospace' }}

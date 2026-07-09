@@ -1,3 +1,5 @@
+import { base, baseSepolia } from "viem/chains";
+
 // Configuration for Base Verify backend integration
 export const config = {
   // Base Verify backend URL (should be set in environment variables)
@@ -22,8 +24,15 @@ export const config = {
     process.env.NEXT_PUBLIC_REGISTRY_CONTRACT_ADDRESS || '0xF94b087F8410a116255b8041E3928d4e01b2a2fF',
 }
 
-const SEPOLIA_EXPLORER = 'https://sepolia.basescan.org/address'
+// The chain the onchain claim runs on, derived from claimChainId (Base or Base Sepolia).
+export const claimChain = config.claimChainId === base.id ? base : baseSepolia
+
+const explorerBase = claimChain.blockExplorers.default.url
 
 export function contractExplorerUrl(address: string): string {
-  return `${SEPOLIA_EXPLORER}/${address}`
+  return `${explorerBase}/address/${address}`
+}
+
+export function txExplorerUrl(hash: string): string {
+  return `${explorerBase}/tx/${hash}`
 }
