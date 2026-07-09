@@ -1,13 +1,16 @@
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { useAccount, useSignMessage, useSwitchChain, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useAccount, useSwitchChain, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { getConnectorClient } from 'wagmi/actions'
 import { createPublicClient, http } from 'viem'
+import { signMessage as viemSignMessage } from 'viem/actions'
 import { baseSepolia } from 'viem/chains'
 import { useState, useEffect } from 'react'
 import { Layout } from '../components/Layout'
 import { generateSignature } from '../lib/signature-generator'
 import { verifySignatureCache } from '../lib/signatureCache'
 import { config, contractExplorerUrl } from '../lib/config'
+import { config as wagmiConfig } from '../lib/wagmi'
 import { useToast } from '../components/ToastProvider'
 import { parseOnchainTxError } from '../lib/onchainTxErrors'
 
@@ -62,7 +65,6 @@ const publicClient = createPublicClient({ chain: baseSepolia, transport: http() 
 export default function OnchainPage() {
   const router = useRouter()
   const { address, isConnected } = useAccount()
-  const { signMessage } = useSignMessage()
   const { switchChainAsync } = useSwitchChain()
   const { showToast } = useToast()
 
@@ -145,10 +147,13 @@ export default function OnchainPage() {
   const fetchOnchainToken = async (
     onNotFound: 'modal' | 'error' = 'modal'
   ): Promise<OnchainToken | null> => {
-    if (!address || !signMessage) {
+    if (!address) {
       setClaimError('Please connect your wallet')
       return null
     }
+
+    // Put the connector on Base Sepolia so the signing client below matches its chain.
+    await ensureClaimChain()
 
     let signature
     const cachedSignature = verifySignatureCache.get()
@@ -161,10 +166,12 @@ export default function OnchainPage() {
         chainId: config.claimChainId,
         provider: '',
         extraResources: [CLAIM_RESOURCE],
-        signMessageFunction: async (message: string) =>
-          new Promise<string>((resolve, reject) =>
-            signMessage({ message }, { onSuccess: resolve, onError: reject })
-          ),
+        // Sign via a connector client pinned to the claim chain. Passing chainId explicitly avoids
+        // wagmi's stale connection.chainId (the base-account connector doesn't sync switches to the store).
+        signMessageFunction: async (message: string) => {
+          const client = await getConnectorClient(wagmiConfig, { chainId: baseSepolia.id })
+          return viemSignMessage(client, { account: client.account, message })
+        },
         address,
       })
       verifySignatureCache.set(signature)
@@ -199,7 +206,7 @@ export default function OnchainPage() {
   }
 
   const handleClaim = async (isAutoVerifyFromSuccess = false) => {
-    if (!address || !signMessage) {
+    if (!address) {
       setClaimError('Please connect your wallet to claim')
       return
     }
@@ -246,8 +253,6 @@ export default function OnchainPage() {
         args: claimArgs,
       })
 
-      // Switch to Base Sepolia only for the on-chain tx; the SIWE signing above is chain-agnostic.
-      await ensureClaimChain()
       writeContract({
         address: config.claimContractAddress as `0x${string}`,
         abi: AIRDROP_ABI,
@@ -309,7 +314,6 @@ export default function OnchainPage() {
         return
       }
 
-      await ensureClaimChain()
       writeReset({
         address: config.claimContractAddress as `0x${string}`,
         abi: AIRDROP_ABI,
