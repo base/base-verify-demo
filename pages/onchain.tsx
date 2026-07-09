@@ -158,8 +158,7 @@ export default function OnchainPage() {
       signature = cachedSignature
     } else {
       signature = await generateSignature({
-        // Onchain only needs the statement, chain, and the eip155 contract resource — the backend
-        // reads the provider/conditions from the contract itself, not from the SIWE message.
+        // Backend derives provider/conditions from the contract, so send only statement + chain + eip155 resource.
         statement: ONCHAIN_STATEMENT,
         chainId: config.claimChainId,
         provider: '',

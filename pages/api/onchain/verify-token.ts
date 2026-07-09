@@ -23,10 +23,8 @@ export default async function handler(
       return res.status(500).json({ error: "Claim contract not configured" });
     }
 
-    // Call the onchain verify endpoint — returns { identityHash, expiration, signature }.
-    // The SIWE signature is the credential (no secret key required); the consumer contract is
-    // read from the SIWE eip155 resource, not a body param. No DB write: dedup lives on-chain
-    // via claimed[identityHash] in the consumer contract.
+    // Exchange the SIWE message + signature for a signed { identityHash, expiration, signature }.
+    // The signature is the credential (no secret key); no DB write — dedup lives on-chain.
     const uri = `${config.baseVerifyApiUrl}/onchain_verify_token`;
     const verifyResponse = await fetch(uri, {
       method: "POST",

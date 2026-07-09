@@ -73,8 +73,7 @@ function buildSIWEMessage(options: SIWEOptions): { message: string; nonce: strin
     resources.push(`urn:verify:verificationid:${verificationID}`);
   }
 
-  // Append any caller-supplied resources verbatim (e.g. the onchain flow's
-  // eip155:<chainId>:<consumer contract>, which the backend reads to bind the token).
+  // Extra resources appended verbatim (e.g. the onchain eip155:<chainId>:<contract> binding).
   resources.push(...extraResources);
 
   // Create SIWE message using the official library

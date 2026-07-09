@@ -83,8 +83,7 @@ export const verifySignatureCache = {
     return true;
   },
 
-  // Onchain flow: a cached signature is reusable if it's for this address and its SIWE message
-  // carries the same resource (the eip155:<chainId>:<contract> binding the backend reads).
+  // Reusable if the cached signature is for this address and its message includes the resource.
   isValidForResource(address: string, resource: string): boolean {
     const cached = this.get();
     if (!cached) return false;
