@@ -150,8 +150,6 @@ export default function OnchainPage() {
       return null
     }
 
-    await ensureClaimChain()
-
     let signature
     const cachedSignature = verifySignatureCache.get()
     if (cachedSignature && verifySignatureCache.isValidForResource(address, CLAIM_RESOURCE)) {
@@ -248,6 +246,8 @@ export default function OnchainPage() {
         args: claimArgs,
       })
 
+      // Switch to Base Sepolia only for the on-chain tx; the SIWE signing above is chain-agnostic.
+      await ensureClaimChain()
       writeContract({
         address: config.claimContractAddress as `0x${string}`,
         abi: AIRDROP_ABI,
@@ -309,6 +309,7 @@ export default function OnchainPage() {
         return
       }
 
+      await ensureClaimChain()
       writeReset({
         address: config.claimContractAddress as `0x${string}`,
         abi: AIRDROP_ABI,
