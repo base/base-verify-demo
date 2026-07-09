@@ -12,6 +12,7 @@ export interface SIWEOptions {
   uri?: string;
   chainId?: number;
   statement?: string;
+  extraResources?: string[];
 }
 
 // Build SIWE message using the official SIWE library
@@ -26,6 +27,7 @@ function buildSIWEMessage(options: SIWEOptions): { message: string; nonce: strin
     traits = {},
     verificationID,
     statement = 'Claim airdrop',
+    extraResources = [],
   } = options;
 
   const nonce = generateNonce();
@@ -71,6 +73,10 @@ function buildSIWEMessage(options: SIWEOptions): { message: string; nonce: strin
     resources.push(`urn:verify:verificationid:${verificationID}`);
   }
 
+  // Append any caller-supplied resources verbatim (e.g. the onchain flow's
+  // eip155:<chainId>:<consumer contract>, which the backend reads to bind the token).
+  resources.push(...extraResources);
+
   // Create SIWE message using the official library
   const siweMessage = new SiweMessage({
     domain,
@@ -98,6 +104,7 @@ export interface GenerateSignatureOptions {
   uri?: string;
   chainId?: number;
   statement?: string;
+  extraResources?: string[];
   signMessageFunction?: (message: string) => Promise<string>;
   address?: string;
 }
@@ -120,6 +127,7 @@ export async function generateSignature(options: GenerateSignatureOptions): Prom
     uri,
     chainId,
     statement,
+    extraResources,
     signMessageFunction,
     address: providedAddress,
   } = options;
@@ -151,6 +159,7 @@ export async function generateSignature(options: GenerateSignatureOptions): Prom
       uri,
       chainId,
       statement,
+      extraResources,
     };
 
     const { message, nonce } = buildSIWEMessage(siweOptions);

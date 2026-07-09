@@ -23,19 +23,19 @@ export default async function handler(
       return res.status(500).json({ error: "Claim contract not configured" });
     }
 
-    // Call the onchain verify endpoint — returns a 6-field EIP-712 signed token.
-    // No DB write: dedup lives on-chain via claimed[uniqueHash] in the consumer contract.
+    // Call the onchain verify endpoint — returns { identityHash, expiration, signature }.
+    // The SIWE signature is the credential (no secret key required); the consumer contract is
+    // read from the SIWE eip155 resource, not a body param. No DB write: dedup lives on-chain
+    // via claimed[identityHash] in the consumer contract.
     const uri = `${config.baseVerifyApiUrl}/onchain_verify_token`;
     const verifyResponse = await fetch(uri, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${config.baseVerifySecretKey}`,
       },
       body: JSON.stringify({
         signature,
         message,
-        target: config.claimContractAddress,
       }),
     });
 

@@ -17,9 +17,8 @@ const AIRDROP_ABI = [
     name: 'claim',
     type: 'function',
     inputs: [
-      { name: 'uniqueHash', type: 'bytes32' },
+      { name: 'identityHash', type: 'bytes32' },
       { name: 'expiration', type: 'uint256' },
-      { name: 'delegate', type: 'address' },
       { name: 'signature', type: 'bytes' },
     ],
     outputs: [],
@@ -40,23 +39,21 @@ const AIRDROP_ABI = [
   {
     name: 'resetClaim',
     type: 'function',
-    inputs: [{ name: 'uniqueHash', type: 'bytes32' }],
+    inputs: [{ name: 'identityHash', type: 'bytes32' }],
     outputs: [],
     stateMutability: 'nonpayable',
   },
 ] as const
 
 type OnchainToken = {
-  owner: string
-  target: string
-  action: string
-  uniqueHash: string
+  identityHash: string
   expiration: string
-  delegate: string
   signature: string
 }
 
 const ACTION = 'my_app_airdrop_2026'
+// SIWE statement the onchain endpoint requires — must match the backend exactly.
+const ONCHAIN_STATEMENT = 'Claim eligibility for a Base Verify onchain benefit.'
 
 // Read-only client for the dedup pre-check.
 const publicClient = createPublicClient({ chain: baseSepolia, transport: http() })
@@ -74,7 +71,7 @@ export default function OnchainPage() {
   const [claimError, setClaimError] = useState<string>('')
   const [isAutoVerification, setIsAutoVerification] = useState(false)
   const [showVerifyModal, setShowVerifyModal] = useState(false)
-  const [lastUniqueHash, setLastUniqueHash] = useState<`0x${string}` | null>(null)
+  const [lastIdentityHash, setLastIdentityHash] = useState<`0x${string}` | null>(null)
 
   const { writeContract, data: txHash, isPending: isTxPending, error: writeError } = useWriteContract()
   const { isSuccess: isTxSuccess, isError: isTxError, error: txReceiptError } =
@@ -168,6 +165,9 @@ export default function OnchainPage() {
         action: ACTION,
         provider: 'coinbase',
         traits: {},
+        statement: ONCHAIN_STATEMENT,
+        chainId: config.claimChainId,
+        extraResources: [`eip155:${config.claimChainId}:${config.claimContractAddress}`],
         signMessageFunction: async (message: string) =>
           new Promise<string>((resolve, reject) =>
             signMessage({ message }, { onSuccess: resolve, onError: reject })
@@ -201,7 +201,7 @@ export default function OnchainPage() {
     }
 
     const { token }: { token: OnchainToken } = await response.json()
-    setLastUniqueHash(token.uniqueHash as `0x${string}`)
+    setLastIdentityHash(token.identityHash as `0x${string}`)
     return token
   }
 
@@ -231,7 +231,7 @@ export default function OnchainPage() {
         address: config.claimContractAddress as `0x${string}`,
         abi: AIRDROP_ABI,
         functionName: 'claimed',
-        args: [token.uniqueHash as `0x${string}`],
+        args: [token.identityHash as `0x${string}`],
       })
       if (alreadyClaimed) {
         setClaimError('This identity has already claimed. Each Coinbase account can only claim once.')
@@ -240,9 +240,8 @@ export default function OnchainPage() {
 
       // Preflight surfaces registry reverts before the wallet prompt.
       const claimArgs = [
-        token.uniqueHash as `0x${string}`,
+        token.identityHash as `0x${string}`,
         BigInt(token.expiration),
-        token.delegate as `0x${string}`,
         token.signature as `0x${string}`,
       ] as const
 
@@ -308,7 +307,7 @@ export default function OnchainPage() {
         address: config.claimContractAddress as `0x${string}`,
         abi: AIRDROP_ABI,
         functionName: 'claimed',
-        args: [token.uniqueHash as `0x${string}`],
+        args: [token.identityHash as `0x${string}`],
       })
       if (!alreadyClaimed) {
         setResetError('Nothing to reset — this identity has not claimed yet.')
@@ -319,7 +318,7 @@ export default function OnchainPage() {
         address: config.claimContractAddress as `0x${string}`,
         abi: AIRDROP_ABI,
         functionName: 'resetClaim',
-        args: [token.uniqueHash as `0x${string}`],
+        args: [token.identityHash as `0x${string}`],
         chainId: config.claimChainId,
       })
     } catch (err) {
@@ -375,7 +374,7 @@ export default function OnchainPage() {
               rel="noopener noreferrer"
               style={{ color: '#0052FF', fontFamily: 'monospace', textDecoration: 'none' }}
             >
-              VerifyRegistry ↗
+              BaseVerifyContract ↗
             </a>
           </div>
 
@@ -407,9 +406,9 @@ export default function OnchainPage() {
 
         {isConnected && (
           <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
-            {lastUniqueHash && (
+            {lastIdentityHash && (
               <p style={{ fontSize: '0.7rem', color: '#9ca3af', fontFamily: 'monospace', margin: '0 0 0.5rem', wordBreak: 'break-all' }}>
-                uniqueHash: {lastUniqueHash}
+                identityHash: {lastIdentityHash}
               </p>
             )}
             <button
