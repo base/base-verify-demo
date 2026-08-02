@@ -66,6 +66,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    // Save the token to DeletedToken before deleting to prevent re-claim
+    if (existingUser.baseVerifyToken) {
+      await prisma.deletedToken.create({
+        data: { token: existingUser.baseVerifyToken }
+      }).catch(() => {
+        // Token may already be in deleted_tokens (idempotent)
+      });
+    }
+
     // Delete the user from the database
     try {
       await prisma.verifiedUser.delete({
