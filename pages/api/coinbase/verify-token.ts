@@ -2,6 +2,10 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { config } from "../../../lib/config";
 import prisma from "../../../lib/prisma";
 import { validateTraits } from "../../../lib/trait-validator";
+import { verifySiweSignature } from "../../../lib/verify-siwe-signature";
+
+// The action this airdrop gates on. Must match what pages/coinbase.tsx signs.
+const EXPECTED_ACTION = "claim_demo_coinbase_airdrop";
 
 export default async function handler(
   req: NextApiRequest,
@@ -38,6 +42,19 @@ export default async function handler(
       return res.status(400).json({
         error: "Invalid trait requirements in message",
         details: validation.error,
+      });
+    }
+
+    // Pin the signed message to what this app intended before trusting the token.
+    // Confirms the signature really comes from the wallet in the message and that
+    // the action is exactly the one this airdrop gates on. The trait pin above plus
+    // this check together stop a user from editing the message before signing.
+    const siweCheck = await verifySiweSignature(message, signature, EXPECTED_ACTION);
+    if (!siweCheck.valid) {
+      console.error("SIWE signature pinning failed:", siweCheck.error);
+      return res.status(400).json({
+        error: "Signed message failed verification",
+        details: siweCheck.error,
       });
     }
 
