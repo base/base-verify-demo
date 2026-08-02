@@ -36,19 +36,20 @@ function parseTraitsFromMessage(message: string): { provider: string; traits: Tr
     .map(line => line.replace(/^- /, '').trim())
     .filter(line => line.length > 0);
 
-  // Find provider URN
-  const providerUrn = resources.find(r => r.match(/^urn:verify:provider:[^:]+$/));
-  if (!providerUrn) {
+   // Find the first trait URN to extract the provider
+  const traitUrn = resources.find(r => r.startsWith('urn:verify:provider:'));
+  if (!traitUrn) {
     return null;
   }
 
-  const providerMatch = providerUrn.match(/^urn:verify:provider:([^:]+)$/);
+  const providerMatch = traitUrn.match(/^urn:verify:provider:([^:]+):/);
   if (!providerMatch) {
     return null;
   }
 
   const provider = providerMatch[1];
   const traits: TraitRequirement = {};
+
 
   // Parse trait URNs for this provider
   const traitPattern = new RegExp(`^urn:verify:provider:${provider}:([^:]+):([^:]+):(.+)$`);

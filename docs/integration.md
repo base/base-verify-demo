@@ -14,7 +14,7 @@ Even if a wallet has few transactions, Base Verify reveals if the user is high-v
 
 **Example Use Cases:**
 - Token-gated airdrops or daily rewards
-- Exclusive content access (e.g. creator coins)
+- Exclusive content access (e.g., creator coins)
 - Identity-based rewards and loyalty programs
 
 ---
@@ -256,7 +256,7 @@ export default async function handler(req, res) {
     });
   }
 
-  // Now safe to verify signature with Base Verify API
+  // Now safe to check signature with Base Verify API
   const response = await fetch('https://verify.base.dev/v1/base_verify_token', {
     method: 'POST',
     headers: {

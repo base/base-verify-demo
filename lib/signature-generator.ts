@@ -20,7 +20,7 @@ function buildSIWEMessage(options: SIWEOptions): { message: string; nonce: strin
     domain = new URL(config.appUrl).hostname,
     address,
     uri = config.appUrl,
-    chainId = 8453, // Base chain
+    chainId = config.claimChainId || 84532,
     action,
     provider,
     traits = {},

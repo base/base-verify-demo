@@ -10,7 +10,7 @@ export const config = {
   baseVerifySecretKey: process.env.BASE_VERIFY_SECRET_KEY,
 
   // Publisher key for client-side API calls (public, requires origin validation)
-  baseVerifyPublisherKey: process.env.NEXT_PUBLIC_BASE_VERIFY_PUBLISHER_KEY,
+  baseVerifyPublicKey: process.env.NEXT_PUBLIC_BASE_VERIFY_PUBLIC_KEY,
 
   // Current app URL for redirects
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://baseverifydemo.com',

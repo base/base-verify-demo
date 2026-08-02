@@ -63,7 +63,7 @@ The action is returned in the API response:
 **Use Cases:**
 - **Multiple campaigns**: Run separate airdrops without interference
 - **Feature gating**: Different tokens for different premium features
-- **Time-based events**: New action per event (e.g., `raffle_jan_2025`, `raffle_feb_2025`)
+- **Time-based events**: New action per event (e.g., `raffle_jan_2026`, `raffle_feb_2026`)
 
 ### Choosing Action Names
 
