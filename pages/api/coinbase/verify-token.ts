@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { config } from "../../../lib/config";
 import prisma from "../../../lib/prisma";
 import { validateTraits } from "../../../lib/trait-validator";
+import { SiweMessage } from "siwe";
 
 export default async function handler(
   req: NextApiRequest,
@@ -20,6 +21,16 @@ export default async function handler(
         error: "Missing required parameters: signature and message",
       });
     }
+
+    // Parse SIWE message to get address
+    let siweMessage: SiweMessage;
+    try {
+      siweMessage = new SiweMessage(message);
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid SIWE message" });
+    }
+
+    const walletAddress = siweMessage.address;
 
     // Define expected trait requirements for Coinbase verification
     // This MUST match what the frontend generates
@@ -108,21 +119,7 @@ export default async function handler(
 
     // Store the verification data in the database
     try {
-      // Extract user data from verification response
-      const addressMatch = message.match(/0x[a-fA-F0-9]{40}/);
-      const walletAddress = addressMatch ? addressMatch[0] : "";
-
       console.log("Extracted wallet address:", walletAddress);
-
-      if (!walletAddress) {
-        console.error(
-          "Failed to extract wallet address from message:",
-          message
-        );
-        return res.status(400).json({
-          error: "Could not extract wallet address from message",
-        });
-      }
 
       console.log("Attempting to store user in database:", walletAddress);
 

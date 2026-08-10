@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { config } from '../../lib/config';
 import prisma from '../../lib/prisma';
 import { validateTraits } from '../../lib/trait-validator';
+import { SiweMessage } from 'siwe';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -18,14 +19,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Define expected trait requirements for X verification
+    // Parse SIWE message to get address and provider
+    let siweMessage: SiweMessage;
+    try {
+      siweMessage = new SiweMessage(message);
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid SIWE message' });
+    }
+
+    const walletAddress = siweMessage.address;
+
+    // Define expected trait requirements for verification
     // This MUST match what the frontend generates
     const expectedTraits = {
       'verified': 'true'
     };
 
+    // Extract provider from message or default to 'x'
+    const providerMatch = message.match(/urn:verify:provider:([^:\s\n]+)/);
+    const provider = providerMatch ? providerMatch[1] : 'x';
+
     // Validate that the message contains the expected trait requirements
-    const validation = validateTraits(message, 'x', expectedTraits);
+    const validation = validateTraits(message, provider, expectedTraits);
     
     if (!validation.valid) {
       console.error('Trait validation failed:', validation.error);
@@ -101,18 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Store the verification data in the database
     try {
-      // Extract user data from verification response
-      const addressMatch = message.match(/0x[a-fA-F0-9]{40}/);
-      const walletAddress = addressMatch ? addressMatch[0] : '';
-
       console.log('Extracted wallet address:', walletAddress);
-
-      if (!walletAddress) {
-        console.error('Failed to extract wallet address from message:', message);
-        return res.status(400).json({
-          error: 'Could not extract wallet address from message'
-        });
-      }
 
       console.log('Attempting to store user in database:', walletAddress);
 
