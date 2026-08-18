@@ -2,6 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { config } from '../../lib/config';
 import prisma from '../../lib/prisma';
 import { validateTraits } from '../../lib/trait-validator';
+import { SiweMessage } from 'siwe';
+import { isAddress } from 'viem';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -101,13 +103,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Store the verification data in the database
     try {
-      // Extract user data from verification response
-      const addressMatch = message.match(/0x[a-fA-F0-9]{40}/);
-      const walletAddress = addressMatch ? addressMatch[0] : '';
+      // Extract the authenticated wallet address from the SIWE message.
+      // Parse the SIWE `address` field (the account the signature is cryptographically
+      // bound to) instead of running a loose regex over the raw message text. The old
+      // regex returned the first 0x-prefixed 40-hex string found anywhere in the
+      // message, which is brittle and could bind the airdrop record to an unintended
+      // address rather than the verified signer.
+      let walletAddress = '';
+      try {
+        walletAddress = new SiweMessage(message).address;
+      } catch (parseError) {
+        console.error('Failed to parse SIWE message:', parseError);
+        return res.status(400).json({
+          error: 'Could not parse SIWE message'
+        });
+      }
 
-      console.log('Extracted wallet address:', walletAddress);
+      console.log('Authenticated wallet address:', walletAddress);
 
-      if (!walletAddress) {
+      if (!walletAddress || !isAddress(walletAddress)) {
         console.error('Failed to extract wallet address from message:', message);
         return res.status(400).json({
           error: 'Could not extract wallet address from message'
