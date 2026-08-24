@@ -4,7 +4,7 @@ A Next.js mini app demonstrating Base Verify integration for social account veri
 
 ## What is Base Verify?
 
-Base Verify allows users to prove ownership of verified accounts on major platforms without sharing credentials. Your app receives a deterministic token that enables Sybil resistance—one verified account = one token = one claim, regardless of how many wallets a user connects.
+Base Verify allows users to prove ownership of verified accounts on major platforms without sharing credentials. Your app receives a deterministic, provider-scoped token that can help prevent duplicate claims from the same verified provider account across multiple wallets.
 
 **Why This Matters:**
 Even if a wallet has few transactions, Base Verify reveals if the user is high-value through their verified social accounts (X Blue, Instagram followers, TikTok engagement) or Coinbase One subscription. This lets you identify quality users regardless of on-chain activity.
@@ -85,10 +85,30 @@ model VerifiedUser {
 **Why These Constraints Matter:**
 
 1. **`address` is unique**: Prevents the same wallet from claiming multiple times
-2. **`baseVerifyToken` is unique**: **This is the anti-sybil protection**
+2. **`baseVerifyToken` is unique**: This helps prevent the same provider account from being used across multiple wallets
    - Even if a user connects 10 different wallets
    - The same X/Instagram/TikTok account produces the same token
    - Database rejects duplicate tokens → prevents multi-wallet abuse
+
+Verification tokens are provider-scoped. An X token is not the same as an Instagram, TikTok, or Coinbase token. Token uniqueness alone therefore does not enforce one global claim per person across every provider. If a campaign allows multiple providers, enforce the campaign's claim policy separately.
+
+For one claim per verified provider account, store the provider with the token and enforce uniqueness for that provider/token pair:
+
+```prisma
+model VerifiedUser {
+  id              String   @id @default(cuid())
+  address         String   @unique
+  provider        String
+  baseVerifyToken String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([provider, baseVerifyToken])
+  @@map("verified_users")
+}
+```
+
+For one claim per campaign participant, add a campaign-level claim record or another rule that blocks additional claims after the first successful verification. Do not rely on provider-scoped token uniqueness alone for this policy.
 
 **Example Sybil Attack Prevention:**
 ```
@@ -319,4 +339,3 @@ For more detailed information, see the `/docs` folder:
 ## Get Started
 
 **Want to integrate Base Verify?** Fill out the [interest form](https://forms.gle/6L4hWAHkojYcefz27) and we'll reach out with API access.
-
